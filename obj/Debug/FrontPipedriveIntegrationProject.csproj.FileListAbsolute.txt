@@ -1,0 +1,14 @@
+D:\Projects\dotNET\Front Pipedrive Integration Project\FrontPipedriveIntegrationProject\bin\Debug\FrontPipedriveIntegrationProject.exe.config
+D:\Projects\dotNET\Front Pipedrive Integration Project\FrontPipedriveIntegrationProject\bin\Debug\FrontPipedriveIntegrationProject.exe
+D:\Projects\dotNET\Front Pipedrive Integration Project\FrontPipedriveIntegrationProject\bin\Debug\FrontPipedriveIntegrationProject.pdb
+D:\Projects\dotNET\Front Pipedrive Integration Project\FrontPipedriveIntegrationProject\obj\Debug\FrontPipedriveIntegrationProject.csprojAssemblyReference.cache
+D:\Projects\dotNET\Front Pipedrive Integration Project\FrontPipedriveIntegrationProject\obj\Debug\FrontPipedriveIntegrationProject.csproj.CoreCompileInputs.cache
+D:\Projects\dotNET\Front Pipedrive Integration Project\FrontPipedriveIntegrationProject\obj\Debug\FrontPipedriveIntegrationProject.exe
+D:\Projects\dotNET\Front Pipedrive Integration Project\FrontPipedriveIntegrationProject\obj\Debug\FrontPipedriveIntegrationProject.pdb
+E:\Projects\C# Projects\FrontPipedriveIntegration\bin\Debug\FrontPipedriveIntegrationProject.exe.config
+E:\Projects\C# Projects\FrontPipedriveIntegration\bin\Debug\FrontPipedriveIntegrationProject.exe
+E:\Projects\C# Projects\FrontPipedriveIntegration\bin\Debug\FrontPipedriveIntegrationProject.pdb
+E:\Projects\C# Projects\FrontPipedriveIntegration\obj\Debug\FrontPipedriveIntegrationProject.csprojAssemblyReference.cache
+E:\Projects\C# Projects\FrontPipedriveIntegration\obj\Debug\FrontPipedriveIntegrationProject.csproj.CoreCompileInputs.cache
+E:\Projects\C# Projects\FrontPipedriveIntegration\obj\Debug\FrontPipedriveIntegrationProject.exe
+E:\Projects\C# Projects\FrontPipedriveIntegration\obj\Debug\FrontPipedriveIntegrationProject.pdb
