@@ -10,7 +10,7 @@ using System.Net.Http.Headers;
 using System.Net;
 using System.IO;
 using System.Web.Script.Serialization;
-
+using System.Threading;
 
 namespace FrontPipedriveIntegrationProject
 {
@@ -97,6 +97,9 @@ namespace FrontPipedriveIntegrationProject
         public static dynamic GetResponseFromFrontApi(string relativeApiUrl, string apiKey)
         {
 
+            //todo INTRODUCING DELAY to avoid rate limiting. Will fix by serialization(better, faster option) OR increasing rate limit
+            //Thread.Sleep(3);
+
             var myUri = new Uri(String.Format("https://api2.frontapp.com{0}", relativeApiUrl));
             var myWebRequest = WebRequest.Create(myUri);
             var myHttpWebRequest = (HttpWebRequest)myWebRequest;
@@ -104,20 +107,31 @@ namespace FrontPipedriveIntegrationProject
             myHttpWebRequest.Headers.Add("Authorization", "Bearer " + apiKey);
             myHttpWebRequest.Accept = "application/json";
 
-            var myWebResponse = myWebRequest.GetResponse();
-            var responseStream = myWebResponse.GetResponseStream();
-            if (responseStream == null) return null;
 
-            var myStreamReader = new StreamReader(responseStream, Encoding.Default);
-            var jsonString = myStreamReader.ReadToEnd();
-            var serializer = new JavaScriptSerializer();
-            if (jsonString.Length > serializer.MaxJsonLength) serializer.MaxJsonLength = jsonString.Length;
-            var json = serializer.Deserialize<object>(jsonString);
+            //todo =============================================
+            // NEED TO FIX THIS
+            //todo =============================================
+            try
+            {
+                var myWebResponse = myWebRequest.GetResponse();
 
-            responseStream.Close();
-            myWebResponse.Close();
+                var responseStream = myWebResponse.GetResponseStream();
+                if (responseStream == null) return null;
 
-            return json;
+                var myStreamReader = new StreamReader(responseStream, Encoding.Default);
+                var jsonString = myStreamReader.ReadToEnd();
+                var serializer = new JavaScriptSerializer();
+                if (jsonString.Length > serializer.MaxJsonLength) serializer.MaxJsonLength = jsonString.Length;
+                var json = serializer.Deserialize<object>(jsonString);
+
+                responseStream.Close();
+                myWebResponse.Close();
+                return json;
+            }
+            catch (WebException e) {
+                return null;
+            }
+            
         }
 
     }

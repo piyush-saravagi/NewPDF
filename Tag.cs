@@ -24,6 +24,24 @@ namespace FrontPipedriveIntegrationProject
         public string readableTagName;
         //? public string convId;
         //? public string convEmail;
+
+
+        public Tag(dynamic res)
+        {
+
+            tagCreationDate = (decimal)res["created_at"];           
+            tagId = (string)(res["id"]);
+            //? convId = (string)(res["conversation"]["id"]);
+            //? convEmail = (string)(res["conversation"]["recipient"]["handle"]);
+            readableTagName = (string)res["name"];
+            ; //? BREAKPOINT. PLEASE REMOVE
+
+                    /*Could store in a dictionary before batch updating but would be too much hassle*/
+            
+        }
+
+        /*
+
         public Tag(dynamic res)
         {
             
@@ -53,8 +71,9 @@ namespace FrontPipedriveIntegrationProject
                     readableTagName = "CONTACT";
                     break;
 
-                    /*Could store in a dictionary before batch updating but would be too much hassle*/
+                    // Could store in a dictionary before batch updating but would be too much hassle
             }
         }
+    */
     }
 }

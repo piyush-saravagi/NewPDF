@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace FrontPipedriveIntegrationProject
 {
@@ -38,6 +39,29 @@ namespace FrontPipedriveIntegrationProject
             }
             this.setOfEmails = GetEmailsFromMessageList(listOfMessages);
             this.PDDealsAffectedByConversation = GetListOfDealsToBeUpdated(setOfEmails);
+
+            if (fullConversationData["tags"].Length != 0) {
+                foreach(var tag in fullConversationData["tags"])
+                {
+                    //Create a new tag if it does not exists
+                    Tag t;
+                    if(!dictOfTags.TryGetValue(tag["id"], out t)){
+                        t = new Tag(tag);
+                        //Add the tag to the list
+                        dictOfTags.Add(t.tagId, t);
+                        ; //? BREAKPOINT> PLEASE REMOVE
+                    }
+                    
+                }
+                
+
+            }
+            //Adding the tags to the fields
+            //foreach(var tag in fullConversationData["tags"]){
+            //    if (tag != null && dictOfTags.ContainsKey(tag[""])) { //not empty tag list
+
+            //    }
+            //}
 
             Console.WriteLine();
 

@@ -30,24 +30,82 @@ namespace FrontPipedriveIntegrationProject
             //ScanFrontEmailsAndUpdatePD();
             //UpdateTEST();
             ScanFrontEmails();
-            ProcessConversations();
+            //ProcessConversations();
             Console.WriteLine("==============================");
             Console.ReadKey();
 
         }
 
+        //? DEBUGGING METHOD. PLEASE DELETE
+        public static void PrintListConversations()
+        {
+            foreach (Conversation c in listOfConversations.Values) {
+                Console.WriteLine("Conv Subject: []");
+                Console.Write("Conv Tags: [");
+                foreach (Tag t in c.dictOfTags.Values) {
+                    Console.Write(t.readableTagName + ", ");
+                }
+                Console.WriteLine("]");
+            }
 
+        }
 
         private static void ScanFrontEmails()
         {
             Int32 currTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            Int32 timeStamp30daysAgo = currTimestamp - 30 * 86400;
+            Int32 timeStampOneYearAgo = currTimestamp - 50 * 86400;     //todo last 50 days, need to change to 365 days
 
             //!0. PAGINATION
 
-            //1. Get deals tagged in the last 30 days
-            var tagEvents = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/events?q[types][]=tag&q[after]={0}&limit=1000", timeStamp30daysAgo), FRONT_API_KEY)["_results"];
+            var response = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/conversations?q[after]={0}&limit=100", timeStampOneYearAgo), FRONT_API_KEY);
+            bool hasNextPage = true;
+            int count = 0;
+            while (hasNextPage) {
+                var allConvInOneYear = response["_results"];
 
+                foreach (var conversation in allConvInOneYear)
+                {
+                    string convId = conversation["id"];
+                    Conversation c;
+                    if (!listOfConversations.TryGetValue(convId, out c))
+                    {
+                        //conversation not present in listOfConversations. Need to create and add a new one
+                        c = new Conversation(conversation);
+                        // Adding the conversation to our dictionary 
+                        listOfConversations.Add(c.id, c);
+                    }
+                }
+
+                if (response["_pagination"]["next"] == null)
+                {
+                    Console.WriteLine("NO NEXT PAGE");
+                    hasNextPage = false;
+                }
+                else {
+                    string pageToken = response["_pagination"]["next"];
+                    pageToken= pageToken.Replace("https://api2.frontapp.com", ""); //Stripping the api url as we need the relative url only
+                    Console.WriteLine("HAS NEXT PAGE");
+                    response = ApiAccessHelper.GetResponseFromFrontApi(pageToken, FRONT_API_KEY);
+                    count++;
+                }
+            }
+
+
+
+            do {
+                
+            }
+            while (response["next"] != null);
+
+            
+            PrintListConversations();
+            ; //? BREAKPOINT > PLEASE DELETE
+
+
+
+           
+            
+            /*
             foreach (var tagEvent in tagEvents)
             {
                 string tagEventId = tagEvent["id"];
@@ -65,7 +123,7 @@ namespace FrontPipedriveIntegrationProject
                 // Add tag details to the conversation
                 c.AddTagFromEvent(tagEvent);
                 Console.WriteLine("Scanned email thread: " + tagEvent["conversation"]["subject"]);
-            }
+            } */
 
             //todo Get conversations CREATED in the last 30 days
             Console.WriteLine("");
