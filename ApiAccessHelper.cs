@@ -129,10 +129,16 @@ namespace FrontPipedriveIntegrationProject
                 return json;
             }
             catch (WebException e) {
-                return null;
-            }
-            
-        }
 
+                //decimal resetTimestamp = Convert.ToDecimal(e.Response.Headers.Get("X-RateLimit-Reset"));
+                //decimal unixTimestamp = (decimal)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+                //if(unixTimestamp < resetTimestamp)
+                //Thread.Sleep((int)(resetTimestamp - unixTimestamp) *1000);
+                //Console.WriteLine("Sleeping for " + (resetTimestamp - unixTimestamp));
+                Console.WriteLine("Sleeping for 4 seconds");
+                Thread.Sleep(4000);
+                return GetResponseFromFrontApi(relativeApiUrl, apiKey);
+            }            
+        }
     }
 }

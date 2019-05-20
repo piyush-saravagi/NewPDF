@@ -10,14 +10,16 @@ namespace FrontPipedriveIntegrationProject
     class Conversation
     {
         public List<dynamic> listOfMessages;
-        public HashSet<string> setOfEmails;
+        public HashSet<string> setOfEmails = new HashSet<string>();
         public string primaryEmail;
         public string id;
         public Dictionary<string, Tag> dictOfTags = new Dictionary<string, Tag>();
         public Dictionary<string, Deal> PDDealsAffectedByConversation;
         public string subject;
         public decimal createdAt;
+        public decimal lastMessage;
         public int CEOpenWindowDays = 10;   // Number of days to resolve CE before the CE goes stale
+        public int OpportunityOpenWindowDays = 10;   // Number of days to resolve opportunity before the opportunity goes stale
 
         public Conversation(dynamic conv)
         {
@@ -27,6 +29,7 @@ namespace FrontPipedriveIntegrationProject
             this.subject = conv["subject"];
             this.primaryEmail = conv["recipient"]["handle"];
             this.createdAt = conv["created_at"];
+            this.lastMessage = conv["last_message"]["created_at"];
 
             var fullConversationData = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/conversations/{0}", id), ApiAccessHelper.FRONT_API_KEY);
 
@@ -37,7 +40,13 @@ namespace FrontPipedriveIntegrationProject
             {
                 this.listOfMessages.Add(msg);   // Convert to list
             }
+
+            //! STEP TAKEN TO REDUCE SCOPE. ASSUMING THAT EMAIL ID IS LINKED TO A DEAL
+            //! UNCOMMENT NEXT LINE AND COMMENT THE LINE AFTER THAT TO INcLUDED ALL EMAIL IDS FROM ALL MESSAGES. BUT THIS WILL INCUR HEAVY API USAGE
             this.setOfEmails = GetEmailsFromMessageList(listOfMessages);
+            //this.setOfEmails.Add(primaryEmail);
+
+
             this.PDDealsAffectedByConversation = GetListOfDealsToBeUpdated(setOfEmails);
 
             if (fullConversationData["tags"].Length != 0) {
@@ -49,7 +58,7 @@ namespace FrontPipedriveIntegrationProject
                         t = new Tag(tag);
                         //Add the tag to the list
                         dictOfTags.Add(t.tagId, t);
-                        ; //? BREAKPOINT> PLEASE REMOVE
+                        ; //? BREAKPOINT> PLEASE REMOVE                                    
                     }
                     
                 }
@@ -87,11 +96,13 @@ namespace FrontPipedriveIntegrationProject
                         {
                             foreach (var deal in allDealsForGivenPerson)
                             {
+
                                 //todo need to filter to OPEN deals
                                 // Try getting the deal  from the local list
                                 Deal tempDeal;
-                                
-                                if(!dealsToUpdate.ContainsKey(deal["id"].ToString())){ // If deal object not present, create one
+
+                                if (!dealsToUpdate.ContainsKey(deal["id"].ToString()))
+                                { // If deal object not present, create one
                                     tempDeal = new Deal(deal);
                                     dealsToUpdate.Add(deal["id"] + "", tempDeal);
                                 }

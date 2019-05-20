@@ -32,6 +32,10 @@ namespace FrontPipedriveIntegrationProject
             ScanFrontEmails();
             //ProcessConversations();
             Console.WriteLine("==============================");
+            PrintListConversations();
+
+
+
             Console.ReadKey();
 
         }
@@ -40,12 +44,24 @@ namespace FrontPipedriveIntegrationProject
         public static void PrintListConversations()
         {
             foreach (Conversation c in listOfConversations.Values) {
-                Console.WriteLine("Conv Subject: []");
+                Console.WriteLine("Conv Subject: ["+ c.subject+"]");
                 Console.Write("Conv Tags: [");
                 foreach (Tag t in c.dictOfTags.Values) {
                     Console.Write(t.readableTagName + ", ");
                 }
                 Console.WriteLine("]");
+                Console.Write("PD Deals: [");
+                if (c.PDDealsAffectedByConversation != null)
+                {
+                    foreach (Deal d in c.PDDealsAffectedByConversation.Values)
+                    {
+                        Console.Write(d.title + ",");
+                    }
+                    Console.Write("]");
+                }
+                else
+                    Console.Write("NO DEALS LINKED WITH THIS EMAIL]" + c.primaryEmail);
+                Console.WriteLine("\n");
             }
 
         }
@@ -53,11 +69,13 @@ namespace FrontPipedriveIntegrationProject
         private static void ScanFrontEmails()
         {
             Int32 currTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            Int32 timeStampOneYearAgo = currTimestamp - 50 * 86400;     //todo last 50 days, need to change to 365 days
+
+            //todo rename to timeStamp30daysAgo
+            Int32 timeStampOneYearAgo = currTimestamp - 30 * 86400;     //todo last 30 days, need to change to 365 days
 
             //!0. PAGINATION
 
-            var response = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/conversations?q[after]={0}&limit=100", timeStampOneYearAgo), FRONT_API_KEY);
+            var response = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/conversations?limit=100"), FRONT_API_KEY);
             bool hasNextPage = true;
             int count = 0;
             while (hasNextPage) {
@@ -65,6 +83,8 @@ namespace FrontPipedriveIntegrationProject
 
                 foreach (var conversation in allConvInOneYear)
                 {
+                    
+
                     string convId = conversation["id"];
                     Conversation c;
                     if (!listOfConversations.TryGetValue(convId, out c))
@@ -74,6 +94,8 @@ namespace FrontPipedriveIntegrationProject
                         // Adding the conversation to our dictionary 
                         listOfConversations.Add(c.id, c);
                     }
+                    Console.WriteLine("Scanned conv: " + c.subject);
+                    if (c.lastMessage < timeStampOneYearAgo) return;
                 }
 
                 if (response["_pagination"]["next"] == null)
@@ -89,14 +111,6 @@ namespace FrontPipedriveIntegrationProject
                     count++;
                 }
             }
-
-
-
-            do {
-                
-            }
-            while (response["next"] != null);
-
             
             PrintListConversations();
             ; //? BREAKPOINT > PLEASE DELETE
@@ -126,13 +140,169 @@ namespace FrontPipedriveIntegrationProject
             } */
 
             //todo Get conversations CREATED in the last 30 days
-            Console.WriteLine("");
+            //Console.WriteLine("");
         }
 
 
-        private static void ProcessConversations() {
+        private static void ProcessConversations(decimal currTimestamp)
+        {
+            string CE_TAG_ID = "tag_2qf6t";
+            string CE_DO_TAG_ID = "tag_2qf79";
+            string PI_TAG_ID = "tag_2zbt1";
+            string FAIL_TAG_ID = "tag_2zbsl";
+
+            //Process each conversation and update the Deal fields
+            foreach (Conversation conversation in listOfConversations.Values)
+            {
+                // Every conversation is an opportunity
+                foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
+                {
+                    d.totalOpportunities30Days++;
+                }
+
+                if (conversation.dictOfTags.ContainsKey(CE_TAG_ID))
+                {
+                    // CE opportunity
+                    foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
+                    {
+                        d.totalCE30Days++;  //CE resolved/ unresolved/ failed etc are all still considered CEs
+                    }
+
+                    if (conversation.dictOfTags.ContainsKey(CE_DO_TAG_ID))
+                    {
+                        Tag ce = conversation.dictOfTags[CE_TAG_ID];
+                        Tag ce_do = conversation.dictOfTags[CE_DO_TAG_ID];
+                        if (ce_do.tagCreationDate - ce.tagCreationDate < conversation.CEOpenWindowDays * 86400)
+                        {
+                            //! SUCCESSFUL RESOLVED CE 
+                            //! CONTAINS CE TAG AND WAS MARKED CE-DO ON TIME
+                            //todo UPDATE FIELDS
+                            foreach (Deal d in conversation.PDDealsAffectedByConversation.Values) {
+                                d.successfulResolvedCe30Days++;
+                            }
+                        }
+                        else
+                        {
+                            //! STALE RESOLVED CE
+                            //! CONTAINS CE AND CE DO TAGS BUT WAS NOT MARKED CE-DO ON TIME 
+                            //todo UPDATE FIELDS
+                            foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
+                            {
+                                d.staleResolvedCe30Days++;
+                            }
+                        }
+
+                    }
+                    else if (conversation.dictOfTags.ContainsKey(FAIL_TAG_ID))
+                    {
+                        //! FAILED RESOLVED CE
+                        //! CONTAINS CE TAG AND FAIL TAG
+                        //todo UPDATE FIELDS
+                        foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
+                        {
+                            d.failedResolvedCe30Days++;
+                        }
+                    }
+                    else {
+                        // Unresolved CE, not marked with CE-DO or FAIL tags
+                        Tag ce = conversation.dictOfTags[CE_TAG_ID];
+                        
+                        if (currTimestamp - ce.tagCreationDate < conversation.CEOpenWindowDays * 86400)
+                        {
+                            //!  OPEN UNRESOLVED CE 
+                            //! CONTAINS CE TAG, WAS NOT MARKED CE-DO OR FAIL AND IS WITHIN THE TIME WINDOW FOR OPEN CE
+                            //todo UPDATE FIELDS
+                            foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
+                            {
+                                d.openUnresolvedCe30Days++;
+                            }
+                        }
+                        else
+                        {
+                            //! STALE UNRESOLVED CE
+                            //! CONTAINS CE AND WAS NOT MARKED CE-DO OR FAIL ON TIME
+                            //todo UPDATE FIELDS
+                            foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
+                            {
+                                d.staleUnresolvedCe30Days++;
+                            }
+                        }
+                    }
+                }
+                else {
+                    // Non CE opportunity
+                    if (conversation.dictOfTags.ContainsKey(PI_TAG_ID))
+                    {
+                        Tag pi = conversation.dictOfTags[PI_TAG_ID];
+                        if (pi.tagCreationDate - conversation.createdAt < conversation.OpportunityOpenWindowDays)
+                        {
+                            //! SUCCESSFUL RESOLVED OPPORTUNITY
+                            //! CONTAINS A PI TAG, BUT NO CE TAG
+                            //todo UPDATE FIELDS
+                            foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
+                            {
+                                d.successfulResolvedOpportunity30Days++;
+                            }
+                        }
+                        else
+                        {
+                            //! STALE RESOLVED OPPORTUNITY
+                            //! CONTAINS A PI TAG BUT OUTSIDE THE WINDOW
+                            //todo UPDATE FIELDS
+                            foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
+                            {
+                                d.staleResolvedOpportunity30Days++;
+                            }
+                        }
+                    }
+                    else if (conversation.dictOfTags.ContainsKey(FAIL_TAG_ID))
+                    {
+                        //! FAILED OPPORTUNITY
+                        //! CONTAINS A FAIL TAG, BUT NO CE
+                        //todo UPDATE FIELDS
+                        foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
+                        {
+                            d.failedResolvedCe30Days++;
+                        }
+                    }
+                    else {
+                        //Unresolved Opportunity
+                        if (currTimestamp - conversation.createdAt < conversation.OpportunityOpenWindowDays * 86400)
+                        {
+                            //! OPEN UNRESOLVED OPPORTUNITY
+                            //! DOES NOT CONTAIN A CE, FAIL, PI TAG BUT IS WITHIN THE OPEN WINDOW
+                            //todo UPDATE FIELDS
+                            foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
+                            {
+                                d.openUnresolvedOpportunities30Days++;
+                            }
+
+                        }
+                        else
+                        {
+                            //! STALE UNRESOLVED OPPORTUNITY
+                            //! DOES NOT CONTAIN A CE, FAIL, PI TAG BUT IS WITHIN THE OPEN WINDOW
+                            //todo UPDATE FIELDS
+                            foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
+                            {
+                                d.staleUnresolvedOpportunity30Days++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        private static void OLD_ProcessConversations() {
             //Process each conversation and update the Deal fields
             foreach (Conversation conversation in listOfConversations.Values) {
+
+                foreach (Deal d in conversation.PDDealsAffectedByConversation.Values) {
+                    /*
+                        * Increase the total number of opportunities irrespective of the autoUpdateDate since total number of opportunites start from 0
+                        */
+                    d.totalOpportunities30Days++;
+                }
+
                 if (conversation.dictOfTags.ContainsKey("tag_2zbt1"))
                 {
                     //! IMPORTANT: Contains PI tag
@@ -140,9 +310,14 @@ namespace FrontPipedriveIntegrationProject
                     // Updating latest PI field for all deals affected by this conversation
                     foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values)
                     {
+                        /*
+                            * Increase the total number of PIs irrespective of the autoUpdateDate since total number of PIs start from 0
+                            */
+                        deal.totalPI30Days++; 
                         if (deal.lastPiDate == default(decimal) || deal.lastPiDate < piTagDate)
                         {
                             // todo Update only if the tag is still present
+
                             deal.lastPiDate = piTagDate;
                             Console.WriteLine("Updating Last PI for " + deal.title + " to " + TimestampToLocalTime(deal.lastPiDate) + " due to thread with subject: " + conversation.subject);
                         }
@@ -202,6 +377,7 @@ namespace FrontPipedriveIntegrationProject
                             //todo Need to work on stale CE list
                             foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values)
                             {
+                                deal.totalStaleCE30Days++;
                                 Console.WriteLine("Stale CE for " + conversation.subject + " because CE was tagged on " + TimestampToLocalTime(ceTagDate) + " and CE DO was tagged on " + TimestampToLocalTime(ceDoTagDate) + " which is AFTER " + conversation.CEOpenWindowDays + " days");
                             }
 
@@ -241,13 +417,13 @@ namespace FrontPipedriveIntegrationProject
             }
         }
 
-        private static string TimestampToLocalTime(decimal timestamp)
+        private static DateTime TimestampToLocalTime(decimal timestamp)
         {
-            System.DateTime dateTime = new System.DateTime(1970, 1, 1, 0, 0, 0, 0);
+            DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0);
 
             // Add the timestamp (number of seconds since the Epoch) to be converted
             dateTime = dateTime.AddSeconds((double)timestamp).ToLocalTime();
-            return dateTime.ToString();
+            return dateTime;
         }
 
 
