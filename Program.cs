@@ -301,8 +301,10 @@ namespace FrontPipedriveIntegrationProject
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
                                 d.openUnresolvedCe30Days++;
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "openUnresolvedCe30Days", d.openUnresolvedCe30Days - 1, d.openUnresolvedCe30Days, "marked CE on " + ce.tagCreationDate + " and today is " + currTimestamp + " which is outside the window of " + conversation.CEOpenWindowDays + " days"));
 
-
+                                //? NEED TO ADD LOGS FOR THE REST OF THE TAGS BELOW THIS LINE
+                                //? ---------------------------------------------------------
 
                                 if (d.lastOpenContactDate < conversation.createdAt)
                                 {
@@ -321,9 +323,13 @@ namespace FrontPipedriveIntegrationProject
                             //todo UPDATE FIELDS
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleUnresolvedCe30Days", d.staleUnresolvedCe30Days - 1, d.staleUnresolvedCe30Days, "marked CE on " + ce.tagCreationDate + " and today's date is " + TimestampToLocalTime(currTimestamp)+ " which is outside the window of " + conversation.CEOpenWindowDays + " days"));
                                 d.staleUnresolvedCe30Days++;
+
+
                                 if (d.lastOpenContactDate < conversation.createdAt)
                                 {
+                                    Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "lastOpenContactDate", d.lastOpenContactDate, conversation.createdAt, " new conversation: " + conversation.subject));
                                     d.lastOpenContactDate = conversation.createdAt;
                                 }
                             }
