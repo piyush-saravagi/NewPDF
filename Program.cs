@@ -55,8 +55,10 @@ namespace FrontPipedriveIntegrationProject
 
 
             //? Debugging loop. Please remove
-            foreach (Conversation c in listOfConversations.Values) {
-                if (c.PDDealsAffectedByConversation.Count != 0) {
+            foreach (Conversation c in listOfConversations.Values)
+            {
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
                     ;
                 }
             }
@@ -70,10 +72,12 @@ namespace FrontPipedriveIntegrationProject
         //? DEBUGGING METHOD. PLEASE DELETE
         public static void PrintListConversations()
         {
-            foreach (Conversation c in listOfConversations.Values) {
-                Console.WriteLine("Conv Subject: ["+ c.subject+"]");
+            foreach (Conversation c in listOfConversations.Values)
+            {
+                Console.WriteLine("Conv Subject: [" + c.subject + "]");
                 Console.Write("Conv Tags: [");
-                foreach (Tag t in c.dictOfTags.Values) {
+                foreach (Tag t in c.dictOfTags.Values)
+                {
                     Console.Write(t.readableTagName + ", ");
                 }
                 Console.WriteLine("]");
@@ -95,18 +99,19 @@ namespace FrontPipedriveIntegrationProject
 
         private static void ScanFrontEmails()
         {
-            
+
             //!0. PAGINATION
 
             var response = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/conversations"), FRONT_API_KEY);
             bool hasNextPage = true;
             int count = 0;
-            while (hasNextPage) {
+            while (hasNextPage)
+            {
                 var allConvInOneYear = response["_results"];
 
                 foreach (var conversation in allConvInOneYear)
                 {
-                    
+
 
                     string convId = conversation["id"];
                     Conversation c;
@@ -126,22 +131,23 @@ namespace FrontPipedriveIntegrationProject
                     Console.WriteLine("NO NEXT PAGE");
                     hasNextPage = false;
                 }
-                else {
+                else
+                {
                     string pageToken = response["_pagination"]["next"];
-                    pageToken= pageToken.Replace("https://api2.frontapp.com", ""); //Stripping the api url as we need the relative url only
+                    pageToken = pageToken.Replace("https://api2.frontapp.com", ""); //Stripping the api url as we need the relative url only
                     Console.WriteLine("HAS NEXT PAGE");
                     response = ApiAccessHelper.GetResponseFromFrontApi(pageToken, FRONT_API_KEY);
                     count++;
                 }
             }
-            
+
             PrintListConversations();
             ; //? BREAKPOINT > PLEASE DELETE
 
 
 
-           
-            
+
+
             /*
             foreach (var tagEvent in tagEvents)
             {
@@ -174,6 +180,8 @@ namespace FrontPipedriveIntegrationProject
             string PI_TAG_ID = "tag_2zbt1";
             string FAIL_TAG_ID = "tag_2zbsl";
 
+            string logReason;
+
             //Process each conversation and update the Deal fields
             foreach (Conversation conversation in listOfConversations.Values)
             {
@@ -184,25 +192,27 @@ namespace FrontPipedriveIntegrationProject
                 //Logging PD Fields
                 List<string> pdTitles = new List<string>();
                 //? could have used linq as well
-                foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values) {
+                foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values)
+                {
                     pdTitles.Add(deal.title);
                 }
                 Logger(LOG_FILE_NAME, String.Format("Pipedrive deals affected: {0}", String.Join(", ", pdTitles)));
                 pdTitles = null;
 
-                
+
                 // Every conversation is an opportunity
                 foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                 {
                     d.totalOpportunities30Days++;
-                    if (conversation.createdAt > d.autoUpdateDate) {    // Conversation created after last update, need to update history
+                    if (conversation.createdAt > d.autoUpdateDate)
+                    {    // Conversation created after last update, need to update history
                         // We have a new opportunity (CE/Non-CE doesn't matter)
                         //Update in history
                         int monthToUpdate = TimestampToLocalTime(conversation.createdAt).Month - 1;
                         Int32 temp = Int32.Parse(d.contactHistoryStringArray[monthToUpdate]) + 1;
                         //Update it back to the deal
                         d.contactHistoryStringArray[monthToUpdate] = temp.ToString();
-                        Logger(LOG_FILE_NAME, String.Format("{0}: Updated {1} from {2} to {3} because of {4}", d.title, "totalOpportunities30Days", (temp-1), temp, "new conversation: "+conversation.subject))
+                        Logger(LOG_FILE_NAME, String.Format("{0}: Updated {1} from {2} to {3} because of {4}", d.title, "totalOpportunities30Days", (temp - 1), temp, "new conversation: " + conversation.subject))
                         ;
                     }
                 }
@@ -230,7 +240,7 @@ namespace FrontPipedriveIntegrationProject
 
                     if (conversation.dictOfTags.ContainsKey(CE_DO_TAG_ID))
                     {
-                        
+
                         Tag ce_do = conversation.dictOfTags[CE_DO_TAG_ID];
                         if (ce_do.tagCreationDate - ce.tagCreationDate < conversation.CEOpenWindowDays * 86400)
                         {
@@ -240,11 +250,11 @@ namespace FrontPipedriveIntegrationProject
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
                                 d.successfulResolvedCe30Days++;
-                                Logger(LOG_FILE_NAME, String.Format("{0}: Updated {1} from {2} to {3} because of - {4}", d.title, "successFullyResolvedCe30Days", d.successfulResolvedCe30Days- 1, d.successfulResolvedCe30Days, "marked CE on " + ce.tagCreationDate + " and CE DO marked on "+ce_do.tagCreationDate + " which is within " + conversation.CEOpenWindowDays + " days"));
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Updated {1} from {2} to {3} because of - {4}", d.title, "successFullyResolvedCe30Days", d.successfulResolvedCe30Days - 1, d.successfulResolvedCe30Days, "marked CE on " + ce.tagCreationDate + " and CE DO marked on " + ce_do.tagCreationDate + " which is within " + conversation.CEOpenWindowDays + " days"));
 
                                 if (d.lastCeDoDate < ce_do.tagCreationDate)
                                 {
-                                    Logger(LOG_FILE_NAME, String.Format("{0}: Updated {1} from {2} to {3} because of - {4}", d.title, "lastCeDoDate", TimestampToLocalTime(d.lastCeDoDate), TimestampToLocalTime(ce_do.tagCreationDate),""));
+                                    Logger(LOG_FILE_NAME, String.Format("{0}: Updated {1} from {2} to {3} because of - {4}", d.title, "lastCeDoDate", TimestampToLocalTime(d.lastCeDoDate), TimestampToLocalTime(ce_do.tagCreationDate), ""));
                                     d.lastCeDoDate = ce_do.tagCreationDate;
                                 }
 
@@ -267,7 +277,7 @@ namespace FrontPipedriveIntegrationProject
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
                                 d.staleResolvedCe30Days++;
-                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleResolvedCe30Days", d.staleResolvedCe30Days - 1, d.staleResolvedCe30Days, "marked CE on " + ce.tagCreationDate + " and CE DO on " + ce_do.tagCreationDate + " which is outside the window of "+ conversation.CEOpenWindowDays + " days"));
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleResolvedCe30Days", d.staleResolvedCe30Days - 1, d.staleResolvedCe30Days, "marked CE on " + ce.tagCreationDate + " and CE DO on " + ce_do.tagCreationDate + " which is outside the window of " + conversation.CEOpenWindowDays + " days"));
                             }
                         }
 
@@ -323,7 +333,7 @@ namespace FrontPipedriveIntegrationProject
                             //todo UPDATE FIELDS
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
-                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleUnresolvedCe30Days", d.staleUnresolvedCe30Days - 1, d.staleUnresolvedCe30Days, "marked CE on " + ce.tagCreationDate + " and today's date is " + TimestampToLocalTime(currTimestamp)+ " which is outside the window of " + conversation.CEOpenWindowDays + " days"));
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleUnresolvedCe30Days", d.staleUnresolvedCe30Days - 1, d.staleUnresolvedCe30Days, "marked CE on " + ce.tagCreationDate + " and today's date is " + TimestampToLocalTime(currTimestamp) + " which is outside the window of " + conversation.CEOpenWindowDays + " days"));
                                 d.staleUnresolvedCe30Days++;
 
 
@@ -338,6 +348,7 @@ namespace FrontPipedriveIntegrationProject
                 }
                 else
                 {
+
                     // Non CE opportunity
                     if (conversation.dictOfTags.ContainsKey(PI_TAG_ID))
                     {
@@ -349,9 +360,12 @@ namespace FrontPipedriveIntegrationProject
                             //todo UPDATE FIELDS
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "successfulResolvedOpportunity30Days", d.successfulResolvedOpportunity30Days, d.successfulResolvedOpportunity30Days + 1, "conversation created on " + conversation.createdAt + " and marked PI on " + pi.tagCreationDate));
+
                                 d.successfulResolvedOpportunity30Days++;
                                 if (d.lastPiDate < pi.tagCreationDate)
                                 {
+                                    logReason = "marked PI on " + pi.tagCreationDate + " and previous PI was on " + d.lastPiDate; Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "lastPiDate", d.lastPiDate, pi.tagCreationDate, logReason));
                                     d.lastPiDate = pi.tagCreationDate;
                                 }
 
@@ -363,6 +377,7 @@ namespace FrontPipedriveIntegrationProject
                                     Int32 temp = Int32.Parse(d.piHistoryStringArray[monthToUpdate]) + 1;
                                     //Update it back to the deal
                                     d.piHistoryStringArray[monthToUpdate] = temp.ToString();
+                                    //todo update log if needed
                                 }
                             }
                         }
@@ -373,6 +388,8 @@ namespace FrontPipedriveIntegrationProject
                             //todo UPDATE FIELDS
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
+                                logReason = "conversation created on " + conversation.createdAt + " and maked PI on " + pi.tagCreationDate + " which is outside the " + conversation.OpportunityOpenWindowDays + " days window";
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleResolvedOpportunity30Days", d.staleResolvedOpportunity30Days, d.staleResolvedOpportunity30Days + 1, logReason));
                                 d.staleResolvedOpportunity30Days++;
                             }
                         }
@@ -385,8 +402,9 @@ namespace FrontPipedriveIntegrationProject
                         Tag fail = conversation.dictOfTags[FAIL_TAG_ID];
                         foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                         {
+                            logReason = "created on " + conversation.createdAt + " and marked fail on " + fail.tagCreationDate;
+                            Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "failedResolvedCe30Days", d.failedResolvedCe30Days, d.failedResolvedCe30Days + 1, logReason));
                             d.failedResolvedCe30Days++;
-
                         }
                     }
                     else
@@ -399,9 +417,13 @@ namespace FrontPipedriveIntegrationProject
                             //todo UPDATE FIELDS
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
+                                logReason = "created on " + conversation.createdAt + " and today is " + currTimestamp + " which is within " + conversation.OpportunityOpenWindowDays + " days window";
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "openUnresolvedOpportunities30Days", d.openUnresolvedOpportunities30Days, d.openUnresolvedOpportunities30Days + 1, logReason));
                                 d.openUnresolvedOpportunities30Days++;
                                 if (d.lastOpenContactDate < conversation.createdAt)
                                 {
+                                    logReason = "new conversation created on " + conversation.createdAt + " and previous conversation was on" + d.lastOpenContactDate;
+                                    Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "lastOpenContactDate", d.lastOpenContactDate, conversation.createdAt, logReason));
                                     d.lastOpenContactDate = conversation.createdAt;
                                 }
                             }
@@ -414,9 +436,14 @@ namespace FrontPipedriveIntegrationProject
                             //todo UPDATE FIELDS
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
+                                logReason = "created on " + conversation.createdAt + " and today is " + currTimestamp + " which is outside " + conversation.OpportunityOpenWindowDays + " days window";
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleUnresolvedOpportunity30Days", d.staleUnresolvedOpportunity30Days, d.staleUnresolvedOpportunity30Days + 1, logReason));
                                 d.staleUnresolvedOpportunity30Days++;
+
                                 if (d.lastOpenContactDate < conversation.createdAt)
                                 {
+                                    logReason = "new conversation created on " + conversation.createdAt + " and previous conversation was on" + d.lastOpenContactDate;
+                                    Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "lastOpenContactDate", d.lastOpenContactDate, conversation.createdAt, logReason));
                                     d.lastOpenContactDate = conversation.createdAt;
                                 }
                             }
@@ -426,8 +453,10 @@ namespace FrontPipedriveIntegrationProject
             }
 
             //Update the auto-update date. This is done separately from the rest of the updates because we need to update the other fields that are dependent on this BEFORE making changes to this field
-            foreach (Conversation conversation in listOfConversations.Values) {
-                foreach (Deal d in conversation.PDDealsAffectedByConversation.Values) {
+            foreach (Conversation conversation in listOfConversations.Values)
+            {
+                foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
+                {
                     d.autoUpdateDate = currTimestamp;
                 }
             }
@@ -435,12 +464,16 @@ namespace FrontPipedriveIntegrationProject
             UpdateYearlyFields();
         }
 
-        private static void UpdateYearlyFields() {
-            foreach (Conversation c in listOfConversations.Values) {
-                foreach (Deal d in c.PDDealsAffectedByConversation.Values) {
-                    for (int i = 0; i < 12; i++) {
+        private static void UpdateYearlyFields()
+        {
+            foreach (Conversation c in listOfConversations.Values)
+            {
+                foreach (Deal d in c.PDDealsAffectedByConversation.Values)
+                {
+                    for (int i = 0; i < 12; i++)
+                    {
                         d.totalOpportunitiesYearly += Int32.Parse(d.contactHistoryStringArray[i]);
-                        d.totalPiYearly+= Int32.Parse(d.piHistoryStringArray[i]);
+                        d.totalPiYearly += Int32.Parse(d.piHistoryStringArray[i]);
                         d.totalCeYearly += Int32.Parse(d.ceHistoryStringArray[i]);
                         d.totalCeDoYearly += Int32.Parse(d.ceDoHistoryStringArray[i]);
                     }
@@ -450,11 +483,14 @@ namespace FrontPipedriveIntegrationProject
 
 
         //? can be removed if the other processConversation is working longer needed
-        private static void OLD_ProcessConversations() {
+        private static void OLD_ProcessConversations()
+        {
             //Process each conversation and update the Deal fields
-            foreach (Conversation conversation in listOfConversations.Values) {
+            foreach (Conversation conversation in listOfConversations.Values)
+            {
 
-                foreach (Deal d in conversation.PDDealsAffectedByConversation.Values) {
+                foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
+                {
                     /*
                         * Increase the total number of opportunities irrespective of the autoUpdateDate since total number of opportunites start from 0
                         */
@@ -471,7 +507,7 @@ namespace FrontPipedriveIntegrationProject
                         /*
                             * Increase the total number of PIs irrespective of the autoUpdateDate since total number of PIs start from 0
                             */
-                        deal.totalPI30Days++; 
+                        deal.totalPI30Days++;
                         if (deal.lastPiDate == default(decimal) || deal.lastPiDate < piTagDate)
                         {
                             // todo Update only if the tag is still present
@@ -498,7 +534,8 @@ namespace FrontPipedriveIntegrationProject
                         }
                     }
                 }
-                else if (conversation.dictOfTags.ContainsKey("tag_2qf6t")) {
+                else if (conversation.dictOfTags.ContainsKey("tag_2qf6t"))
+                {
                     //! IMPORTANT: Contains CE tag
                     /*
                         * It could be successful CE, open CE or stale CE
@@ -541,14 +578,16 @@ namespace FrontPipedriveIntegrationProject
 
                         }
                     }
-                    else {
+                    else
+                    {
                         //! IMPORTANT: Does not contain a 'CE DO' tag (neither fail tag)
                         //! IMPORTANT: Could be stale or open CE
                         decimal currTimestamp = (decimal)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
                         if (currTimestamp - ceTagDate <= conversation.CEOpenWindowDays * 8400)
                         {
                             //Open CE identified
-                            foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values) {
+                            foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values)
+                            {
                                 // Update each deal
                                 if (deal.lastOpenCeDate == default(decimal) || deal.lastOpenCeDate < currTimestamp)
                                 {
@@ -559,7 +598,8 @@ namespace FrontPipedriveIntegrationProject
                                 }
                             }
                         }
-                        else {
+                        else
+                        {
                             //Stale CE
                             foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values)
                             {
@@ -827,10 +867,11 @@ namespace FrontPipedriveIntegrationProject
 
         public static void Logger(string filename, string lines)
         {
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(filename, true)) {
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(filename, true))
+            {
                 file.WriteLine(lines);
             }
-        }   
+        }
     }
 }
 

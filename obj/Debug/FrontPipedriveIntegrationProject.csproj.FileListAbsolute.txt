@@ -19,3 +19,10 @@ C:\Users\psaravagi\Desktop\FrontPipedriveIntegrationProject_New\obj\Debug\FrontP
 C:\Users\psaravagi\Desktop\FrontPipedriveIntegrationProject_New\bin\Debug\FrontPipedriveIntegrationProject.exe.config
 C:\Users\psaravagi\Desktop\FrontPipedriveIntegrationProject_New\bin\Debug\FrontPipedriveIntegrationProject.exe
 C:\Users\psaravagi\Desktop\FrontPipedriveIntegrationProject_New\bin\Debug\FrontPipedriveIntegrationProject.pdb
+C:\Users\Piyush Saravagi\Desktop\NewPDF\bin\Debug\FrontPipedriveIntegrationProject.exe.config
+C:\Users\Piyush Saravagi\Desktop\NewPDF\bin\Debug\FrontPipedriveIntegrationProject.exe
+C:\Users\Piyush Saravagi\Desktop\NewPDF\bin\Debug\FrontPipedriveIntegrationProject.pdb
+C:\Users\Piyush Saravagi\Desktop\NewPDF\obj\Debug\FrontPipedriveIntegrationProject.csprojAssemblyReference.cache
+C:\Users\Piyush Saravagi\Desktop\NewPDF\obj\Debug\FrontPipedriveIntegrationProject.csproj.CoreCompileInputs.cache
+C:\Users\Piyush Saravagi\Desktop\NewPDF\obj\Debug\FrontPipedriveIntegrationProject.exe
+C:\Users\Piyush Saravagi\Desktop\NewPDF\obj\Debug\FrontPipedriveIntegrationProject.pdb
