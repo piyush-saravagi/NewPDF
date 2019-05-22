@@ -30,7 +30,7 @@ namespace FrontPipedriveIntegrationProject
         //? CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 
         //? CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 
         //todo rename to timeStamp30daysAgo
-        static Int32 timeStampOneYearAgo = currTimestamp - 5 * 86400;     //todo last 30 days, need to change to 365 days
+        static Int32 timeStampOneYearAgo = currTimestamp - 30 * 86400;     //todo last 30 days, need to change to 365 days
         //todo ===========++++++++++++++++++++================+++++++++++++++===============+++++++++++++============+++++++++++
         //? CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 
         //? CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 
@@ -62,8 +62,6 @@ namespace FrontPipedriveIntegrationProject
                     ;
                 }
             }
-
-
 
             Console.ReadKey();
 
@@ -99,6 +97,7 @@ namespace FrontPipedriveIntegrationProject
 
         private static void ScanFrontEmails()
         {
+            List<String> inboxesThatAffectPdFields = new List<string>(new string[]{ "0_PRIORITY", "0_Tier1", "0_TIER1_LOW", "0_Tier2", "1_Sales", "2_Support" });
 
             //!0. PAGINATION
 
@@ -114,16 +113,76 @@ namespace FrontPipedriveIntegrationProject
 
 
                     string convId = conversation["id"];
-                    Conversation c;
-                    if (!listOfConversations.TryGetValue(convId, out c))
-                    {
-                        //conversation not present in listOfConversations. Need to create and add a new one
-                        c = new Conversation(conversation);
-                        // Adding the conversation to our dictionary 
-                        listOfConversations.Add(c.id, c);
+                    //? ==============================================================================
+                    //? ==============================================================================
+                    //? ==============================================================================
+                    //? ==============================================================================
+                    //? ==============================================================================
+                    //todo FILTER BY INBOXES =========================================================
+                    //? ==============================================================================
+                    //? ==============================================================================
+                    //? ==============================================================================
+                    //? ==============================================================================
+
+                    //? ==============================================================================
+                    //? ==============================================================================
+                    //? ==============================================================================
+                    //? ==============================================================================
+                    //? ==============================================================================
+                    //? ==============================================================================
+                    var inboxesRelativeUrl = conversation["_links"]["related"]["inboxes"].Replace("https://api2.frontapp.com", "");
+                    var inboxes = ApiAccessHelper.GetResponseFromFrontApi(inboxesRelativeUrl, FRONT_API_KEY)["_results"];
+                    bool shouldProcess = false;
+                    ;
+
+                    List<string> listOfInboxes = new List<string>();
+
+                    //? DEBUGGING PLEASE DELETE THE NEXT LINE OF CODE
+                    if (inboxes.Length > 1) {
+                        ;
                     }
-                    Console.WriteLine("Scanned conv: " + c.subject);
-                    if (c.lastMessage < timeStampOneYearAgo) return;
+
+                    foreach (var inbox in inboxes) {
+                        listOfInboxes.Add(inbox["name"]);
+                        if (!shouldProcess && inboxesThatAffectPdFields.Contains(inbox["name"])){
+                            shouldProcess = true;
+                            //? breaking causes the listOfInboxes to be incomplete
+                            // break;
+                        }
+                    }
+
+                    Console.WriteLine("\nScanned conv: " + conversation["subject"]);
+                    Console.WriteLine("Last message on " + TimestampToLocalTime(conversation["last_message"]["created_at"]));
+                    Console.WriteLine("Inboxes: " + String.Join(", ", listOfInboxes));
+                    if (shouldProcess)
+                    {
+                        Conversation c;
+                        if (!listOfConversations.TryGetValue(convId, out c))
+                        {
+
+                            //conversation not present in listOfConversations. Need to create and add a new one
+                            c = new Conversation(conversation);
+                            // Adding the conversation to our dictionary 
+
+                            listOfConversations.Add(c.id, c);
+                        }
+                        
+                    }
+                    else {
+                        
+                        Console.WriteLine("Conversation Not inside inboxes of our interest - not processing further");
+                    }
+
+                    
+                    //Get the last event for this conversation
+                    string eventsRelativeUrl = conversation["_links"]["related"]["events"].Replace("https://api2.frontapp.com", "");
+                    var latestEventDate = ApiAccessHelper.GetResponseFromFrontApi(eventsRelativeUrl, FRONT_API_KEY)["_results"][0]["emitted_at"];
+
+                    //if (c.lastMessage < timeStampOneYearAgo)
+                    //    return;
+                    if (latestEventDate < timeStampOneYearAgo) {
+                        return;
+                    }
                 }
 
                 if (response["_pagination"]["next"] == null)
@@ -141,7 +200,6 @@ namespace FrontPipedriveIntegrationProject
                 }
             }
 
-            PrintListConversations();
             ; //? BREAKPOINT > PLEASE DELETE
 
 
@@ -333,7 +391,7 @@ namespace FrontPipedriveIntegrationProject
                             //todo UPDATE FIELDS
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
-                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleUnresolvedCe30Days", d.staleUnresolvedCe30Days - 1, d.staleUnresolvedCe30Days, "marked CE on " + ce.tagCreationDate + " and today's date is " + TimestampToLocalTime(currTimestamp) + " which is outside the window of " + conversation.CEOpenWindowDays + " days"));
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleUnresolvedCe30Days", d.staleUnresolvedCe30Days, d.staleUnresolvedCe30Days+1, "marked CE on " + ce.tagCreationDate + " and today's date is " + TimestampToLocalTime(currTimestamp) + " which is outside the window of " + conversation.CEOpenWindowDays + " days"));
                                 d.staleUnresolvedCe30Days++;
 
 
@@ -353,7 +411,7 @@ namespace FrontPipedriveIntegrationProject
                     if (conversation.dictOfTags.ContainsKey(PI_TAG_ID))
                     {
                         Tag pi = conversation.dictOfTags[PI_TAG_ID];
-                        if (pi.tagCreationDate - conversation.createdAt < conversation.OpportunityOpenWindowDays)
+                        if (pi.tagCreationDate - conversation.createdAt < conversation.OpportunityOpenWindowDays * 86400 )
                         {
                             //! SUCCESSFUL RESOLVED OPPORTUNITY
                             //! CONTAINS A PI TAG, BUT NO CE TAG
@@ -583,7 +641,7 @@ namespace FrontPipedriveIntegrationProject
                         //! IMPORTANT: Does not contain a 'CE DO' tag (neither fail tag)
                         //! IMPORTANT: Could be stale or open CE
                         decimal currTimestamp = (decimal)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-                        if (currTimestamp - ceTagDate <= conversation.CEOpenWindowDays * 8400)
+                        if (currTimestamp - ceTagDate <= conversation.CEOpenWindowDays * 86400)
                         {
                             //Open CE identified
                             foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values)

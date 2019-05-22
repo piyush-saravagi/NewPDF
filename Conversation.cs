@@ -71,9 +71,6 @@ namespace FrontPipedriveIntegrationProject
 
             //    }
             //}
-
-            Console.WriteLine();
-
         }
 
         private Dictionary<string, Deal> GetListOfDealsToBeUpdated(HashSet<string> setOfEmails)

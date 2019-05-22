@@ -129,7 +129,7 @@ namespace FrontPipedriveIntegrationProject
                 return json;
             }
             catch (WebException e) {
-
+                ;
                 //decimal resetTimestamp = Convert.ToDecimal(e.Response.Headers.Get("X-RateLimit-Reset"));
                 //decimal unixTimestamp = (decimal)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
                 //if(unixTimestamp < resetTimestamp)
