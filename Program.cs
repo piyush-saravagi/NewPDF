@@ -224,7 +224,7 @@ namespace FrontPipedriveIntegrationProject
                     foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                     {
                         d.totalCE30Days++;  //CE resolved/ unresolved/ failed etc are all still considered CEs
-                        Logger(LOG_FILE_NAME, String.Format("{0}: Updated {1} from {2} to {3} because of - {4}", d.title, "totalCE30Days", d.totalCE30Days - 1, d.totalCE30Days, "marked CE on " + ce.tagCreationDate));
+                        Logger(LOG_FILE_NAME, String.Format("{0}: Updated {1} from {2} to {3} because of - {4}", d.title, "totalCE30Days", d.totalCE30Days - 1, d.totalCE30Days, "marked CE on " + TimestampToLocalTime(ce.tagCreationDate)));
 
                         if (ce.tagCreationDate > d.autoUpdateDate)
                         {    // Conversation marked CE after last update, need to update history
@@ -250,7 +250,7 @@ namespace FrontPipedriveIntegrationProject
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
                                 d.successfulResolvedCe30Days++;
-                                Logger(LOG_FILE_NAME, String.Format("{0}: Updated {1} from {2} to {3} because of - {4}", d.title, "successFullyResolvedCe30Days", d.successfulResolvedCe30Days - 1, d.successfulResolvedCe30Days, "marked CE on " + ce.tagCreationDate + " and CE DO marked on " + ce_do.tagCreationDate + " which is within " + conversation.CEOpenWindowDays + " days"));
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Updated {1} from {2} to {3} because of - {4}", d.title, "successFullyResolvedCe30Days", d.successfulResolvedCe30Days - 1, d.successfulResolvedCe30Days, "marked CE on " + TimestampToLocalTime(ce.tagCreationDate) + " and CE DO marked on " + TimestampToLocalTime(ce_do.tagCreationDate) + " which is within " + conversation.CEOpenWindowDays + " days"));
 
                                 if (d.lastCeDoDate < ce_do.tagCreationDate)
                                 {
@@ -277,7 +277,7 @@ namespace FrontPipedriveIntegrationProject
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
                                 d.staleResolvedCe30Days++;
-                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleResolvedCe30Days", d.staleResolvedCe30Days - 1, d.staleResolvedCe30Days, "marked CE on " + ce.tagCreationDate + " and CE DO on " + ce_do.tagCreationDate + " which is outside the window of " + conversation.CEOpenWindowDays + " days"));
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleResolvedCe30Days", d.staleResolvedCe30Days - 1, d.staleResolvedCe30Days, "marked CE on " + TimestampToLocalTime(ce.tagCreationDate) + " and CE DO on " + TimestampToLocalTime(ce_do.tagCreationDate) + " which is outside the window of " + conversation.CEOpenWindowDays + " days"));
                             }
                         }
 
@@ -295,7 +295,7 @@ namespace FrontPipedriveIntegrationProject
                             if (d.lastFailedCeDate < fail.tagCreationDate)
                             {
                                 d.lastFailedCeDate = fail.tagCreationDate;
-                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "lastFailedCeDate", d.lastFailedCeDate, fail.tagCreationDate, "marked CE on " + ce.tagCreationDate + " and fail on " + fail.tagCreationDate));
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "lastFailedCeDate", TimestampToLocalTime(d.lastFailedCeDate), TimestampToLocalTime(fail.tagCreationDate), "marked CE on " + TimestampToLocalTime(ce.tagCreationDate) + " and fail on " + TimestampToLocalTime(fail.tagCreationDate)));
                             }
                         }
                     }
@@ -311,7 +311,7 @@ namespace FrontPipedriveIntegrationProject
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
                                 d.openUnresolvedCe30Days++;
-                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "openUnresolvedCe30Days", d.openUnresolvedCe30Days - 1, d.openUnresolvedCe30Days, "marked CE on " + ce.tagCreationDate + " and today is " + currTimestamp + " which is outside the window of " + conversation.CEOpenWindowDays + " days"));
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "openUnresolvedCe30Days", d.openUnresolvedCe30Days - 1, d.openUnresolvedCe30Days, "marked CE on " + TimestampToLocalTime(ce.tagCreationDate) + " and today is " + TimestampToLocalTime(currTimestamp) + " which is outside the window of " + conversation.CEOpenWindowDays + " days"));
 
                                 //? NEED TO ADD LOGS FOR THE REST OF THE TAGS BELOW THIS LINE
                                 //? ---------------------------------------------------------
@@ -339,7 +339,7 @@ namespace FrontPipedriveIntegrationProject
 
                                 if (d.lastOpenContactDate < conversation.createdAt)
                                 {
-                                    Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "lastOpenContactDate", d.lastOpenContactDate, conversation.createdAt, " new conversation: " + conversation.subject));
+                                    Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "lastOpenContactDate", TimestampToLocalTime(d.lastOpenContactDate), TimestampToLocalTime(conversation.createdAt), " new conversation: " + conversation.subject));
                                     d.lastOpenContactDate = conversation.createdAt;
                                 }
                             }
@@ -360,12 +360,12 @@ namespace FrontPipedriveIntegrationProject
                             //todo UPDATE FIELDS
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
-                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "successfulResolvedOpportunity30Days", d.successfulResolvedOpportunity30Days, d.successfulResolvedOpportunity30Days + 1, "conversation created on " + conversation.createdAt + " and marked PI on " + pi.tagCreationDate));
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "successfulResolvedOpportunity30Days", d.successfulResolvedOpportunity30Days, d.successfulResolvedOpportunity30Days + 1, "conversation created on " + TimestampToLocalTime(conversation.createdAt) + " and marked PI on " + TimestampToLocalTime(pi.tagCreationDate)));
 
                                 d.successfulResolvedOpportunity30Days++;
                                 if (d.lastPiDate < pi.tagCreationDate)
                                 {
-                                    logReason = "marked PI on " + pi.tagCreationDate + " and previous PI was on " + d.lastPiDate; Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "lastPiDate", d.lastPiDate, pi.tagCreationDate, logReason));
+                                    logReason = "marked PI on " + pi.tagCreationDate + " and previous PI was on " + d.lastPiDate; Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "lastPiDate", TimestampToLocalTime(d.lastPiDate), TimestampToLocalTime(pi.tagCreationDate), logReason));
                                     d.lastPiDate = pi.tagCreationDate;
                                 }
 
@@ -388,7 +388,7 @@ namespace FrontPipedriveIntegrationProject
                             //todo UPDATE FIELDS
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
-                                logReason = "conversation created on " + conversation.createdAt + " and maked PI on " + pi.tagCreationDate + " which is outside the " + conversation.OpportunityOpenWindowDays + " days window";
+                                logReason = "conversation created on " + TimestampToLocalTime(conversation.createdAt) + " and maked PI on " + TimestampToLocalTime(pi.tagCreationDate) + " which is outside the " + conversation.OpportunityOpenWindowDays + " days window";
                                 Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleResolvedOpportunity30Days", d.staleResolvedOpportunity30Days, d.staleResolvedOpportunity30Days + 1, logReason));
                                 d.staleResolvedOpportunity30Days++;
                             }
@@ -402,7 +402,7 @@ namespace FrontPipedriveIntegrationProject
                         Tag fail = conversation.dictOfTags[FAIL_TAG_ID];
                         foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                         {
-                            logReason = "created on " + conversation.createdAt + " and marked fail on " + fail.tagCreationDate;
+                            logReason = "created on " + TimestampToLocalTime(conversation.createdAt) + " and marked fail on " + TimestampToLocalTime(fail.tagCreationDate);
                             Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "failedResolvedCe30Days", d.failedResolvedCe30Days, d.failedResolvedCe30Days + 1, logReason));
                             d.failedResolvedCe30Days++;
                         }
@@ -417,12 +417,12 @@ namespace FrontPipedriveIntegrationProject
                             //todo UPDATE FIELDS
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
-                                logReason = "created on " + conversation.createdAt + " and today is " + currTimestamp + " which is within " + conversation.OpportunityOpenWindowDays + " days window";
+                                logReason = "created on " + TimestampToLocalTime(conversation.createdAt) + " and today is " + TimestampToLocalTime(currTimestamp) + " which is within " + conversation.OpportunityOpenWindowDays + " days window";
                                 Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "openUnresolvedOpportunities30Days", d.openUnresolvedOpportunities30Days, d.openUnresolvedOpportunities30Days + 1, logReason));
                                 d.openUnresolvedOpportunities30Days++;
                                 if (d.lastOpenContactDate < conversation.createdAt)
                                 {
-                                    logReason = "new conversation created on " + conversation.createdAt + " and previous conversation was on" + d.lastOpenContactDate;
+                                    logReason = "new conversation created on " + TimestampToLocalTime(conversation.createdAt) + " and previous conversation was on" + TimestampToLocalTime(d.lastOpenContactDate);
                                     Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "lastOpenContactDate", d.lastOpenContactDate, conversation.createdAt, logReason));
                                     d.lastOpenContactDate = conversation.createdAt;
                                 }
@@ -436,13 +436,13 @@ namespace FrontPipedriveIntegrationProject
                             //todo UPDATE FIELDS
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
-                                logReason = "created on " + conversation.createdAt + " and today is " + currTimestamp + " which is outside " + conversation.OpportunityOpenWindowDays + " days window";
+                                logReason = "created on " + TimestampToLocalTime(conversation.createdAt) + " and today is " + TimestampToLocalTime(currTimestamp) + " which is outside " + conversation.OpportunityOpenWindowDays + " days window";
                                 Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleUnresolvedOpportunity30Days", d.staleUnresolvedOpportunity30Days, d.staleUnresolvedOpportunity30Days + 1, logReason));
                                 d.staleUnresolvedOpportunity30Days++;
 
                                 if (d.lastOpenContactDate < conversation.createdAt)
                                 {
-                                    logReason = "new conversation created on " + conversation.createdAt + " and previous conversation was on" + d.lastOpenContactDate;
+                                    logReason = "new conversation created on " + TimestampToLocalTime(conversation.createdAt) + " and previous conversation was on" + TimestampToLocalTime(d.lastOpenContactDate);
                                     Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "lastOpenContactDate", d.lastOpenContactDate, conversation.createdAt, logReason));
                                     d.lastOpenContactDate = conversation.createdAt;
                                 }
