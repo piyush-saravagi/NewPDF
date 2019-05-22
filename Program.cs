@@ -26,28 +26,14 @@ namespace FrontPipedriveIntegrationProject
         static Int32 currTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
         static string LOG_FILE_NAME = currTimestamp.ToString() + ".txt";
 
-        //? CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 
-        //? CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 
-        //? CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 
+        
         //todo rename to timeStamp30daysAgo
         static Int32 timeStampOneYearAgo = currTimestamp - 30 * 86400;     //todo last 30 days, need to change to 365 days
-        //todo ===========++++++++++++++++++++================+++++++++++++++===============+++++++++++++============+++++++++++
-        //? CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 
-        //? CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 CHANGE TO 30 
-
+        
         static void Main(string[] args)
         {
 
-            //var response = GetResponseFromPipedriveApi("/deals", PD_API_KEY);
-            //var response = apiHelper.GetResponseFromFrontApi("/tags", FRONT_API_KEY);
-            //ScanFrontEmailsAndUpdatePD();
-            //UpdateTEST();
             ScanFrontEmails();
-            //ProcessConversations();
-            Console.WriteLine("==============================");
-            //PrintListConversations();
-
-            Console.WriteLine("==============================");
             ProcessConversations(currTimestamp);
             Console.WriteLine("==============================");
 
@@ -97,108 +83,107 @@ namespace FrontPipedriveIntegrationProject
 
         private static void ScanFrontEmails()
         {
-            List<String> inboxesThatAffectPdFields = new List<string>(new string[]{ "0_PRIORITY", "0_Tier1", "0_TIER1_LOW", "0_Tier2", "1_Sales", "2_Support" });
+            /*
+              * 9_ToReadLater: "inb_b8z9"
+              * 0_Tier1: "inb_600h"
+              * "0_PRIORITY": "inb_6061"
+              * "0_Tier2": "inb_g84l"
+              * "4_Events": "inb_24it"
+              * "0_INCOMING": "inb_2mnh"
+              */
 
-            //!0. PAGINATION
+            
+            List<string> idsOfinboxesThatAffectPdFields = new List<string>(new string[]{ "inb_6061", "inb_600h", "inb_g84l"});
 
-            var response = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/conversations"), FRONT_API_KEY);
-            bool hasNextPage = true;
-            int count = 0;
-            while (hasNextPage)
-            {
-                var allConvInOneYear = response["_results"];
-
-                foreach (var conversation in allConvInOneYear)
+            foreach (string inboxId in idsOfinboxesThatAffectPdFields) {
+                //!0. PAGINATION
+                Console.WriteLine("Conversations from " + inboxId + "\n___________________");
+                var response = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/inboxes/{0}/conversations", inboxId), FRONT_API_KEY);
+                bool hasNextPage = true;
+                int count = 0;
+                while (hasNextPage)
                 {
+                    var allConvInOneYear = response["_results"];
 
-
-                    string convId = conversation["id"];
-                    //? ==============================================================================
-                    //? ==============================================================================
-                    //? ==============================================================================
-                    //? ==============================================================================
-                    //? ==============================================================================
-                    //todo FILTER BY INBOXES =========================================================
-                    //? ==============================================================================
-                    //? ==============================================================================
-                    //? ==============================================================================
-                    //? ==============================================================================
-
-                    //? ==============================================================================
-                    //? ==============================================================================
-                    //? ==============================================================================
-                    //? ==============================================================================
-                    //? ==============================================================================
-                    //? ==============================================================================
-                    var inboxesRelativeUrl = conversation["_links"]["related"]["inboxes"].Replace("https://api2.frontapp.com", "");
-                    var inboxes = ApiAccessHelper.GetResponseFromFrontApi(inboxesRelativeUrl, FRONT_API_KEY)["_results"];
-                    bool shouldProcess = false;
-                    ;
-
-                    List<string> listOfInboxes = new List<string>();
-
-                    //? DEBUGGING PLEASE DELETE THE NEXT LINE OF CODE
-                    if (inboxes.Length > 1) {
-                        ;
-                    }
-
-                    foreach (var inbox in inboxes) {
-                        listOfInboxes.Add(inbox["name"]);
-                        if (!shouldProcess && inboxesThatAffectPdFields.Contains(inbox["name"])){
-                            shouldProcess = true;
-                            //? breaking causes the listOfInboxes to be incomplete
-                            // break;
-                        }
-                    }
-
-                    Console.WriteLine("\nScanned conv: " + conversation["subject"]);
-                    Console.WriteLine("Last message on " + TimestampToLocalTime(conversation["last_message"]["created_at"]));
-                    Console.WriteLine("Inboxes: " + String.Join(", ", listOfInboxes));
-                    if (shouldProcess)
+                    foreach (var conversation in allConvInOneYear)
                     {
-                        Conversation c;
-                        if (!listOfConversations.TryGetValue(convId, out c))
+
+
+                        string convId = conversation["id"];
+                        //? ==============================================================================
+                        //? ==============================================================================
+                        //? ==============================================================================
+                        //? ==============================================================================
+                        //? ==============================================================================
+                        //todo FILTER BY INBOXES =========================================================
+                        //? ==============================================================================
+                        //? ==============================================================================
+                        //? ==============================================================================
+                        //? ==============================================================================
+
+                        //? ==============================================================================
+                        //? ==============================================================================
+                        //? ==============================================================================
+                        //? ==============================================================================
+                        //? ==============================================================================
+                        //? ==============================================================================
+                       
+                       
+
+                        
+
+                        
+                        Console.WriteLine("\nScanned conv: " + conversation["subject"]);
+                        Console.WriteLine("Last message on " + TimestampToLocalTime(conversation["last_message"]["created_at"]));
+                        
+                        
+                            Conversation c;
+                            if (!listOfConversations.TryGetValue(convId, out c))
+                            {
+
+                                //conversation not present in listOfConversations. Need to create and add a new one
+                                c = new Conversation(conversation);
+                                // Adding the conversation to our dictionary 
+
+                                listOfConversations.Add(c.id, c);
+                            }
+
+                        
+                      
+
+                        //Get the last event for this conversation
+                        string eventsRelativeUrl = conversation["_links"]["related"]["events"].Replace("https://api2.frontapp.com", "");
+                        var latestEventDate = ApiAccessHelper.GetResponseFromFrontApi(eventsRelativeUrl, FRONT_API_KEY)["_results"][0]["emitted_at"];
+
+                        //if (c.lastMessage < timeStampOneYearAgo)
+                        //    return;
+                        if (latestEventDate < timeStampOneYearAgo)
                         {
-
-                            //conversation not present in listOfConversations. Need to create and add a new one
-                            c = new Conversation(conversation);
-                            // Adding the conversation to our dictionary 
-
-                            listOfConversations.Add(c.id, c);
+                            //! IMPORTANT - Do not delete: Needed to break out of the outer loop as well
+                            hasNextPage = false;
+                            break;
                         }
-                        
-                    }
-                    else {
-                        
-                        Console.WriteLine("Conversation Not inside inboxes of our interest - not processing further");
                     }
 
-                    
-                    //Get the last event for this conversation
-                    string eventsRelativeUrl = conversation["_links"]["related"]["events"].Replace("https://api2.frontapp.com", "");
-                    var latestEventDate = ApiAccessHelper.GetResponseFromFrontApi(eventsRelativeUrl, FRONT_API_KEY)["_results"][0]["emitted_at"];
-
-                    //if (c.lastMessage < timeStampOneYearAgo)
-                    //    return;
-                    if (latestEventDate < timeStampOneYearAgo) {
-                        return;
+                    if (response["_pagination"]["next"] == null)
+                    {
+                        Console.WriteLine("NO NEXT PAGE");
+                        hasNextPage = false;
+                    }
+                    else
+                    {
+                        string pageToken = response["_pagination"]["next"];
+                        pageToken = pageToken.Replace("https://api2.frontapp.com", ""); //Stripping the api url as we need the relative url only
+                        Console.WriteLine("HAS NEXT PAGE");
+                        response = ApiAccessHelper.GetResponseFromFrontApi(pageToken, FRONT_API_KEY);
+                        count++;
                     }
                 }
 
-                if (response["_pagination"]["next"] == null)
-                {
-                    Console.WriteLine("NO NEXT PAGE");
-                    hasNextPage = false;
-                }
-                else
-                {
-                    string pageToken = response["_pagination"]["next"];
-                    pageToken = pageToken.Replace("https://api2.frontapp.com", ""); //Stripping the api url as we need the relative url only
-                    Console.WriteLine("HAS NEXT PAGE");
-                    response = ApiAccessHelper.GetResponseFromFrontApi(pageToken, FRONT_API_KEY);
-                    count++;
-                }
             }
+
+
+
 
             ; //? BREAKPOINT > PLEASE DELETE
 
