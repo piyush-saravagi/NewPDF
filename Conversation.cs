@@ -9,6 +9,8 @@ namespace FrontPipedriveIntegrationProject
 {
     class Conversation
     {
+        static Dictionary<string, Deal> listOfAllDeals = new Dictionary<string, Deal>();
+
         public List<dynamic> listOfMessages;
         public HashSet<string> setOfEmails = new HashSet<string>();
         public string primaryEmail;
@@ -20,6 +22,7 @@ namespace FrontPipedriveIntegrationProject
         public decimal lastMessage;
         public int CEOpenWindowDays = 10;   // Number of days to resolve CE before the CE goes stale
         public int OpportunityOpenWindowDays = 10;   // Number of days to resolve opportunity before the opportunity goes stale
+        
 
         public Conversation(dynamic conv)
         {
@@ -98,9 +101,26 @@ namespace FrontPipedriveIntegrationProject
                                 // Try getting the deal  from the local list
                                 Deal tempDeal;
 
+                                //? =======================================================================================================
+                                //? NEED TO UPDATE SO THAT ONLY DEALS THAT HAVE NOT BEEN CONSIDERED YET ARE CREATED, ELSE SHARE THE OBJECT
+                                //? =======================================================================================================
                                 if (!dealsToUpdate.ContainsKey(deal["id"].ToString()))
-                                { // If deal object not present, create one
-                                    tempDeal = new Deal(deal);
+                                { // Deal object not present inside dealsToUpdate, but could be present inside AllDeals
+
+                                    if (listOfAllDeals.ContainsKey(deal["id"].ToString()))
+                                    {
+                                        //We already have a deal inside allDeals. No need to create a new one. Just link the deal to dealsToUpdate
+                                        //? REMOVE DEBUGGING LINE BELOW
+                                        Console.WriteLine("Deal already created by diff conversation");
+                                        tempDeal = listOfAllDeals[deal["id"]+""];
+                                    }
+                                    else
+                                    {
+                                        // Need to create a new deal
+                                        tempDeal = new Deal(deal);
+                                        // Add it to the allDeals
+                                        listOfAllDeals.Add(tempDeal.id + "", tempDeal);
+                                    }
                                     dealsToUpdate.Add(deal["id"] + "", tempDeal);
                                 }
                             }

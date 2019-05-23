@@ -16,12 +16,30 @@ namespace FrontPipedriveIntegrationProject
 {
     class Program
     {
-        //todo ignore tier4
-        //todo move to Helper class safely
+        //? ===============================================================
+        //? ===============================================================
+        //? ===============================================================
+        //? ===============================================================
+        //? ===============================================================
+        //todo MAKE SURE THERE IS ONLY ONE DEAL ACROSS MULTIPLE CONVERSATIONS
+        //? ===============================================================
+        //? ===============================================================
+        //? ===============================================================
+        //? ===============================================================
+        //? ===============================================================
+        //? ===============================================================
+
+
+
+        //todo ##############################
+        //todo ====Count CE-DO as a PI ======
+        //todo ##############################
+        //todo move to Helper class safely and then outside the source code
         public const string PD_API_KEY = "0b9f8a7f360f41c3264ab14ed5d2a760ecaf39f3";
         public const string FRONT_API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzY29wZXMiOlsic2hhcmVkOioiXSwiaWF0IjoxNTU2MzEzNjI3LCJpc3MiOiJmcm9udCIsInN1YiI6ImxlYW5zZXJ2ZXIiLCJqdGkiOiI5MDZkYTc3NjA2NWVkOTA5In0.b28IHdaeo0YXwq4dy-xEbzG54RkHnXcOwrbMpbJ5LyY";
         ApiAccessHelper apiHelper = new ApiAccessHelper();
         static Dictionary<string, Conversation> listOfConversations = new Dictionary<string, Conversation>();
+
 
         static Int32 currTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
         static string LOG_FILE_NAME = currTimestamp.ToString() + ".txt";
@@ -36,18 +54,11 @@ namespace FrontPipedriveIntegrationProject
             ScanFrontEmails();
             ProcessConversations(currTimestamp);
             Console.WriteLine("==============================");
+            updateDealFields();
 
             //todo ADD FUNCTIONALITY TO AUTOMATICALLY DELETE HISTORY EVERY YEAR OR ASK JILL TO DO THAT 
 
-
-            //? Debugging loop. Please remove
-            foreach (Conversation c in listOfConversations.Values)
-            {
-                if (c.PDDealsAffectedByConversation.Count != 0)
-                {
-                    ;
-                }
-            }
+            
 
             Console.ReadKey();
 
@@ -81,8 +92,10 @@ namespace FrontPipedriveIntegrationProject
 
         }
 
+
         private static void ScanFrontEmails()
         {
+        
             /*
               * 9_ToReadLater: "inb_b8z9"
               * 0_Tier1: "inb_600h"
@@ -110,28 +123,6 @@ namespace FrontPipedriveIntegrationProject
 
 
                         string convId = conversation["id"];
-                        //? ==============================================================================
-                        //? ==============================================================================
-                        //? ==============================================================================
-                        //? ==============================================================================
-                        //? ==============================================================================
-                        //todo FILTER BY INBOXES =========================================================
-                        //? ==============================================================================
-                        //? ==============================================================================
-                        //? ==============================================================================
-                        //? ==============================================================================
-
-                        //? ==============================================================================
-                        //? ==============================================================================
-                        //? ==============================================================================
-                        //? ==============================================================================
-                        //? ==============================================================================
-                        //? ==============================================================================
-                       
-                       
-
-                        
-
                         
                         Console.WriteLine("\nScanned conv: " + conversation["subject"]);
                         Console.WriteLine("Last message on " + TimestampToLocalTime(conversation["last_message"]["created_at"]));
@@ -228,6 +219,7 @@ namespace FrontPipedriveIntegrationProject
             //Process each conversation and update the Deal fields
             foreach (Conversation conversation in listOfConversations.Values)
             {
+                
                 Logger(LOG_FILE_NAME, "");
                 Logger(LOG_FILE_NAME, String.Format("Conversation subject: {0}", conversation.subject));
                 Logger(LOG_FILE_NAME, String.Format("Conversation id: {0}", conversation.id));
@@ -246,6 +238,7 @@ namespace FrontPipedriveIntegrationProject
                 // Every conversation is an opportunity
                 foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                 {
+                    Logger(LOG_FILE_NAME, String.Format("{0}: Updated {1} from {2} to {3} because of {4}", d.title, "totalOpportunities30Days", d.totalOpportunities30Days, d.totalOpportunities30Days + 1, "new conversation: " + conversation.subject));
                     d.totalOpportunities30Days++;
                     if (conversation.createdAt > d.autoUpdateDate)
                     {    // Conversation created after last update, need to update history
@@ -255,8 +248,7 @@ namespace FrontPipedriveIntegrationProject
                         Int32 temp = Int32.Parse(d.contactHistoryStringArray[monthToUpdate]) + 1;
                         //Update it back to the deal
                         d.contactHistoryStringArray[monthToUpdate] = temp.ToString();
-                        Logger(LOG_FILE_NAME, String.Format("{0}: Updated {1} from {2} to {3} because of {4}", d.title, "totalOpportunities30Days", (temp - 1), temp, "new conversation: " + conversation.subject))
-                        ;
+                        
                     }
                 }
 
@@ -408,7 +400,7 @@ namespace FrontPipedriveIntegrationProject
                                 d.successfulResolvedOpportunity30Days++;
                                 if (d.lastPiDate < pi.tagCreationDate)
                                 {
-                                    logReason = "marked PI on " + pi.tagCreationDate + " and previous PI was on " + d.lastPiDate; Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "lastPiDate", TimestampToLocalTime(d.lastPiDate), TimestampToLocalTime(pi.tagCreationDate), logReason));
+                                    logReason = "marked PI on " + TimestampToLocalTime(pi.tagCreationDate) + " and previous PI was on " + TimestampToLocalTime(d.lastPiDate); Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "lastPiDate", TimestampToLocalTime(d.lastPiDate), TimestampToLocalTime(pi.tagCreationDate), logReason));
                                     d.lastPiDate = pi.tagCreationDate;
                                 }
 
@@ -907,6 +899,50 @@ namespace FrontPipedriveIntegrationProject
             Console.WriteLine("");
         }
         */
+
+        //! UPDATES ALL FIELD FOR THE PD DEAL
+        public static void updateDealFields() {
+            Int32 LAST_OPEN_CONTACT_DATE_FIELD = 12610; // Something that we can work on aka unresolved
+            Int32 LAST_PI_DATE_FIELD = 12628;
+            Int32 LAST_OPEN_CE_FIELD = 12611;
+            Int32 LAST_FAILED_CE_FIELD = 12629;
+            Int32 LAST_CE_DO_FIELD = 12630;
+
+
+            // Multiple conversations could bring up the same deals again and again
+            // Making sure they are updated just once
+            //? ===============================================================
+            //? ===============================================================
+            //? ===============================================================
+            //? ===============================================================
+            //? ===============================================================
+            //? MAKE SURE THERE IS ONLY ONE DEAL ACROSS MULTIPLE CONVERSATIONS
+            //? ===============================================================
+            //? ===============================================================
+            //? ===============================================================
+            //? ===============================================================
+            //? ===============================================================
+            //? ===============================================================
+
+
+
+            foreach (Conversation c in listOfConversations.Values) {
+                foreach (Deal d in c.PDDealsAffectedByConversation.Values) {
+                    if (d.lastPiDate != default(decimal)) {
+                        Console.WriteLine("FOUND A NEW PI FOR "+d.title);
+                        Console.WriteLine(c.subject);
+                        ;
+                    }if (d.lastCeDoDate != default(decimal)) {
+                        Console.WriteLine("FOUND A NEW CE_DO FOR "+ d.title);
+                        Console.WriteLine(c.subject);
+                        ;
+                    }
+                }
+            }
+        }
+
+
+
 
         public static void Logger(string filename, string lines)
         {
