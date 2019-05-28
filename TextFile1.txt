@@ -1,0 +1,2 @@
+﻿days = 30
+inboxes = all
