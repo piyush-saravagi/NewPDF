@@ -26,14 +26,15 @@ namespace FrontPipedriveIntegrationProject
         //? public string convEmail;
 
 
-        public Tag(dynamic res)
+        public Tag(dynamic e)
         {
-
-            tagCreationDate = (decimal)res["created_at"];           
-            tagId = (string)(res["id"]);
+            tagCreationDate = (decimal)e["emitted_at"];
+            // tagCreationDate = (decimal)res["created_at"];           
+            tagId = (string)(e["target"]["data"]["id"]);
+            readableTagName = (string)(e["target"]["data"]["name"]);
             //? convId = (string)(res["conversation"]["id"]);
             //? convEmail = (string)(res["conversation"]["recipient"]["handle"]);
-            readableTagName = (string)res["name"];
+            //readableTagName = (string)e["name"];
             ; //? BREAKPOINT. PLEASE REMOVE
 
                     /*Could store in a dictionary before batch updating but would be too much hassle*/

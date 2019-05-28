@@ -24,7 +24,7 @@ namespace FrontPipedriveIntegrationProject
         public int OpportunityOpenWindowDays = 10;   // Number of days to resolve opportunity before the opportunity goes stale
 
 
-        public Conversation(dynamic conv)
+        public Conversation(dynamic conv, dynamic events)
         {
             // Conversations extracted from "events" DO NOT contain full information (eg. list of messages)
             // Hence, we may need to get the entire conversation using the conversation ID
@@ -52,6 +52,43 @@ namespace FrontPipedriveIntegrationProject
 
             this.PDDealsAffectedByConversation = GetListOfDealsToBeUpdated(setOfEmails);
 
+
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+            //todo  FIX TAGS VALUES
+
+
+            foreach (var e in events) {
+                if (e["type"] == "tag") {
+                    Tag t;
+                    if (!dictOfTags.TryGetValue(e["target"]["data"]["id"], out t))
+                    {
+                        t = new Tag(e);
+                        //Add the tag to the list
+                        dictOfTags.Add(t.tagId, t);
+                        ; //? BREAKPOINT> PLEASE REMOVE                                    
+                    }
+                }
+            }
+            
+
+
+            //? WILL BE REMOVED IF THE ABOVE LOOP IS FIXED
             if (fullConversationData["tags"].Length != 0)
             {
                 foreach (var tag in fullConversationData["tags"])

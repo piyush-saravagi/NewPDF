@@ -48,7 +48,7 @@ namespace FrontPipedriveIntegrationProject
         //? ==========================================
         //? ==========================================
         //todo rename to timeStamp30daysAgo
-        static Int32 timeStampOneYearAgo = currTimestamp - 1 * 100;
+        static Int32 timeStampOneYearAgo = currTimestamp - 1 * 20;
         //static Int32 timeStampOneYearAgo = currTimestamp - 1 * 86400;
         //todo last 30 days, need to change to 30 days
         //? ==========================================                                                                   
@@ -64,6 +64,7 @@ namespace FrontPipedriveIntegrationProject
             ScanFrontEmails();
             ProcessConversations(currTimestamp);
             Console.WriteLine("==============================");
+
             updateDealFields();
 
             //todo ADD FUNCTIONALITY TO AUTOMATICALLY DELETE HISTORY EVERY YEAR OR ASK JILL TO DO THAT 
@@ -146,13 +147,16 @@ namespace FrontPipedriveIntegrationProject
                         Console.WriteLine("\nScanned conv: " + conversation["subject"]);
                         Console.WriteLine("Last message on " + TimestampToLocalTime(conversation["last_message"]["created_at"]));
 
+                        string eventsRelativeUrl = conversation["_links"]["related"]["events"].Replace("https://api2.frontapp.com", "");
+                        var conversationEvents = ApiAccessHelper.GetResponseFromFrontApi(eventsRelativeUrl, FRONT_API_KEY)["_results"];
+
 
                         Conversation c;
                         if (!listOfConversations.TryGetValue(convId, out c))
                         {
 
                             //conversation not present in listOfConversations. Need to create and add a new one
-                            c = new Conversation(conversation);
+                            c = new Conversation(conversation, conversationEvents);
                             // Adding the conversation to our dictionary 
 
                             listOfConversations.Add(c.id, c);
@@ -162,8 +166,8 @@ namespace FrontPipedriveIntegrationProject
 
 
                         //Get the last event for this conversation
-                        string eventsRelativeUrl = conversation["_links"]["related"]["events"].Replace("https://api2.frontapp.com", "");
-                        var latestEventDate = ApiAccessHelper.GetResponseFromFrontApi(eventsRelativeUrl, FRONT_API_KEY)["_results"][0]["emitted_at"];
+                        
+                        var latestEventDate = conversationEvents[0]["emitted_at"];
 
                         //if (c.lastMessage < timeStampOneYearAgo)
                         //    return;
@@ -188,6 +192,21 @@ namespace FrontPipedriveIntegrationProject
                         response = ApiAccessHelper.GetResponseFromFrontApi(pageToken, FRONT_API_KEY);
                         count++;
                     }
+                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
+                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
+                    break;
+                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+
                 }
 
             }

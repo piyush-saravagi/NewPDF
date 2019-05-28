@@ -65,12 +65,12 @@ namespace FrontPipedriveIntegrationProject
 
             id = (Int32)data["id"];
             title = (string)data["title"];
-            if (data[AUTO_UPDATE_DATE_FIELD_ID] != null)
+            if (data[AUTO_UPDATE_DATE_FIELD_ID] != null && !data[PI_HISTORY_FIELD_ID].Equals(""))
             { //Update only if the there was an auto-update ever. Else keep it to default 0 which indicates the last update was at epoch time (Jan 1, 1970) 
                 autoUpdateDateTimestamp = data[AUTO_UPDATE_DATE_FIELD_ID];
             }
 
-            if (data[CONTACT_HISTORY_FIELD_ID] != null)
+            if (data[CONTACT_HISTORY_FIELD_ID] != null && !data[PI_HISTORY_FIELD_ID].Equals(""))
             { //Update only if the contact history field has some value already
                 contactHistoryStringArray = data[CONTACT_HISTORY_FIELD_ID].Split();
             }
@@ -80,12 +80,12 @@ namespace FrontPipedriveIntegrationProject
                 piHistoryStringArray = data[PI_HISTORY_FIELD_ID].Split();
             }
 
-            if (data[CE_HISTORY_FIELD_ID] != null)
+            if (data[CE_HISTORY_FIELD_ID] != null && !data[PI_HISTORY_FIELD_ID].Equals(""))
             { //Update only if the contact history field has some value already
                 ceHistoryStringArray = data[CE_HISTORY_FIELD_ID].Split();
             }
 
-            if (data[CE_DO_HISTORY_FIELD_ID] != null)
+            if (data[CE_DO_HISTORY_FIELD_ID] != null && !data[PI_HISTORY_FIELD_ID].Equals(""))
             { //Update only if the contact history field has some value already
                 ceDoHistoryStringArray = data[CE_DO_HISTORY_FIELD_ID].Split();
             }
@@ -99,6 +99,7 @@ namespace FrontPipedriveIntegrationProject
             pdFieldKeys.Add("LAST_PI_DATE_FIELD", "f7cf37886fc1fdf3a5acad99de357616f568b668");
             pdFieldKeys.Add("PI_HISTORY_FIELD", "62721168b30501206ba71f90ccc3365be658d224");
             pdFieldKeys.Add("AUTO_UPDATE_FIELD", "a54bb91d20b88a895343586b7628d487dfdabfb6");
+
 
             //string LAST_OPEN_CONTACT_DATE_FIELD = 12610; // Something that we can work on aka unresolved
             string LAST_PI_DATE_FIELD = "f7cf37886fc1fdf3a5acad99de357616f568b668";

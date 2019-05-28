@@ -1,2 +1,3 @@
 ﻿days = 30
 inboxes = all
+scan all emails and not just 1
