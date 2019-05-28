@@ -9,7 +9,7 @@ namespace FrontPipedriveIntegrationProject
 {
     class Conversation
     {
-        static Dictionary<string, Deal> listOfAllDeals = new Dictionary<string, Deal>();
+        public static Dictionary<string, Deal> listOfAllDeals = new Dictionary<string, Deal>();
 
         public List<dynamic> listOfMessages;
         public HashSet<string> setOfEmails = new HashSet<string>();
@@ -22,7 +22,7 @@ namespace FrontPipedriveIntegrationProject
         public decimal lastMessage;
         public int CEOpenWindowDays = 10;   // Number of days to resolve CE before the CE goes stale
         public int OpportunityOpenWindowDays = 10;   // Number of days to resolve opportunity before the opportunity goes stale
-        
+
 
         public Conversation(dynamic conv)
         {
@@ -52,20 +52,22 @@ namespace FrontPipedriveIntegrationProject
 
             this.PDDealsAffectedByConversation = GetListOfDealsToBeUpdated(setOfEmails);
 
-            if (fullConversationData["tags"].Length != 0) {
-                foreach(var tag in fullConversationData["tags"])
+            if (fullConversationData["tags"].Length != 0)
+            {
+                foreach (var tag in fullConversationData["tags"])
                 {
                     //Create a new tag if it does not exists
                     Tag t;
-                    if(!dictOfTags.TryGetValue(tag["id"], out t)){
+                    if (!dictOfTags.TryGetValue(tag["id"], out t))
+                    {
                         t = new Tag(tag);
                         //Add the tag to the list
                         dictOfTags.Add(t.tagId, t);
                         ; //? BREAKPOINT> PLEASE REMOVE                                    
                     }
-                    
+
                 }
-                
+
 
             }
             //Adding the tags to the fields
@@ -112,7 +114,7 @@ namespace FrontPipedriveIntegrationProject
                                         //We already have a deal inside allDeals. No need to create a new one. Just link the deal to dealsToUpdate
                                         //? REMOVE DEBUGGING LINE BELOW
                                         Console.WriteLine("Deal already created by diff conversation");
-                                        tempDeal = listOfAllDeals[deal["id"]+""];
+                                        tempDeal = listOfAllDeals[deal["id"] + ""];
                                     }
                                     else
                                     {
@@ -152,7 +154,8 @@ namespace FrontPipedriveIntegrationProject
         public void AddTagFromEvent(dynamic tagEvent)
         {
             Tag t = new Tag(tagEvent);
-            if(!dictOfTags.ContainsKey(t.tagId)){   //If this conversation hasn't been tagged with this tag yet, create new tag and add that 
+            if (!dictOfTags.ContainsKey(t.tagId))
+            {   //If this conversation hasn't been tagged with this tag yet, create new tag and add that 
                 dictOfTags.Add(t.tagId, t);
             }
         }

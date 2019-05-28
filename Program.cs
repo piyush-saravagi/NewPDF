@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net;
@@ -44,10 +42,22 @@ namespace FrontPipedriveIntegrationProject
         static Int32 currTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
         static string LOG_FILE_NAME = currTimestamp.ToString() + ".txt";
 
-        
+        //? ==========================================
+        //? ==========================================
+        //? ==========================================
+        //? ==========================================
+        //? ==========================================
         //todo rename to timeStamp30daysAgo
-        static Int32 timeStampOneYearAgo = currTimestamp - 30 * 86400;     //todo last 30 days, need to change to 365 days
-        
+        static Int32 timeStampOneYearAgo = currTimestamp - 1 * 100;
+        //static Int32 timeStampOneYearAgo = currTimestamp - 1 * 86400;
+        //todo last 30 days, need to change to 30 days
+        //? ==========================================                                                                   
+        //? ==========================================
+        //? ==========================================
+        //? ==========================================
+        //? ==========================================
+
+
         static void Main(string[] args)
         {
 
@@ -57,12 +67,19 @@ namespace FrontPipedriveIntegrationProject
             updateDealFields();
 
             //todo ADD FUNCTIONALITY TO AUTOMATICALLY DELETE HISTORY EVERY YEAR OR ASK JILL TO DO THAT 
-
-            
-
+            //todo complete implementation of ---- ClearHistoryFields -----
             Console.ReadKey();
-
         }
+
+
+        public static void ClearHistoryFields()
+        {
+
+            //todo COMPLETE IMPLEMENTATION
+            throw new NotImplementedException();
+        }
+
+
 
         //? DEBUGGING METHOD. PLEASE DELETE
         public static void PrintListConversations()
@@ -95,7 +112,7 @@ namespace FrontPipedriveIntegrationProject
 
         private static void ScanFrontEmails()
         {
-        
+
             /*
               * 9_ToReadLater: "inb_b8z9"
               * 0_Tier1: "inb_600h"
@@ -105,10 +122,12 @@ namespace FrontPipedriveIntegrationProject
               * "0_INCOMING": "inb_2mnh"
               */
 
-            
-            List<string> idsOfinboxesThatAffectPdFields = new List<string>(new string[]{ "inb_6061", "inb_600h", "inb_g84l"});
 
-            foreach (string inboxId in idsOfinboxesThatAffectPdFields) {
+            //List<string> idsOfinboxesThatAffectPdFields = new List<string>(new string[] { "inb_6061", "inb_600h", "inb_g84l" });
+            List<string> idsOfinboxesThatAffectPdFields = new List<string>(new string[] { "inb_g84l" });
+
+            foreach (string inboxId in idsOfinboxesThatAffectPdFields)
+            {
                 //!0. PAGINATION
                 Console.WriteLine("Conversations from " + inboxId + "\n___________________");
                 var response = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/inboxes/{0}/conversations", inboxId), FRONT_API_KEY);
@@ -123,24 +142,24 @@ namespace FrontPipedriveIntegrationProject
 
 
                         string convId = conversation["id"];
-                        
+
                         Console.WriteLine("\nScanned conv: " + conversation["subject"]);
                         Console.WriteLine("Last message on " + TimestampToLocalTime(conversation["last_message"]["created_at"]));
-                        
-                        
-                            Conversation c;
-                            if (!listOfConversations.TryGetValue(convId, out c))
-                            {
 
-                                //conversation not present in listOfConversations. Need to create and add a new one
-                                c = new Conversation(conversation);
-                                // Adding the conversation to our dictionary 
 
-                                listOfConversations.Add(c.id, c);
-                            }
+                        Conversation c;
+                        if (!listOfConversations.TryGetValue(convId, out c))
+                        {
 
-                        
-                      
+                            //conversation not present in listOfConversations. Need to create and add a new one
+                            c = new Conversation(conversation);
+                            // Adding the conversation to our dictionary 
+
+                            listOfConversations.Add(c.id, c);
+                        }
+
+
+
 
                         //Get the last event for this conversation
                         string eventsRelativeUrl = conversation["_links"]["related"]["events"].Replace("https://api2.frontapp.com", "");
@@ -219,7 +238,7 @@ namespace FrontPipedriveIntegrationProject
             //Process each conversation and update the Deal fields
             foreach (Conversation conversation in listOfConversations.Values)
             {
-                
+
                 Logger(LOG_FILE_NAME, "");
                 Logger(LOG_FILE_NAME, String.Format("Conversation subject: {0}", conversation.subject));
                 Logger(LOG_FILE_NAME, String.Format("Conversation id: {0}", conversation.id));
@@ -240,7 +259,7 @@ namespace FrontPipedriveIntegrationProject
                 {
                     Logger(LOG_FILE_NAME, String.Format("{0}: Updated {1} from {2} to {3} because of {4}", d.title, "totalOpportunities30Days", d.totalOpportunities30Days, d.totalOpportunities30Days + 1, "new conversation: " + conversation.subject));
                     d.totalOpportunities30Days++;
-                    if (conversation.createdAt > d.autoUpdateDate)
+                    if (d.autoUpdateDateTimestamp == default(decimal) || conversation.createdAt > d.autoUpdateDateTimestamp)
                     {    // Conversation created after last update, need to update history
                         // We have a new opportunity (CE/Non-CE doesn't matter)
                         //Update in history
@@ -248,7 +267,7 @@ namespace FrontPipedriveIntegrationProject
                         Int32 temp = Int32.Parse(d.contactHistoryStringArray[monthToUpdate]) + 1;
                         //Update it back to the deal
                         d.contactHistoryStringArray[monthToUpdate] = temp.ToString();
-                        
+
                     }
                 }
 
@@ -261,7 +280,7 @@ namespace FrontPipedriveIntegrationProject
                         d.totalCE30Days++;  //CE resolved/ unresolved/ failed etc are all still considered CEs
                         Logger(LOG_FILE_NAME, String.Format("{0}: Updated {1} from {2} to {3} because of - {4}", d.title, "totalCE30Days", d.totalCE30Days - 1, d.totalCE30Days, "marked CE on " + TimestampToLocalTime(ce.tagCreationDate)));
 
-                        if (ce.tagCreationDate > d.autoUpdateDate)
+                        if (d.autoUpdateDateTimestamp == default(decimal) || ce.tagCreationDate > d.autoUpdateDateTimestamp)
                         {    // Conversation marked CE after last update, need to update history
                              // We have a new CE (Resolved/Unresolved doesn't matter)
                              //Update in history
@@ -293,7 +312,7 @@ namespace FrontPipedriveIntegrationProject
                                     d.lastCeDoDate = ce_do.tagCreationDate;
                                 }
 
-                                if (ce_do.tagCreationDate > d.autoUpdateDate)
+                                if (d.autoUpdateDateTimestamp == default(decimal) || ce_do.tagCreationDate > d.autoUpdateDateTimestamp)
                                 {    // Conversation tagged CE-DO after the last update, need to update history
                                      //Update in history
                                     int monthToUpdate = TimestampToLocalTime(ce_do.tagCreationDate).Month - 1;
@@ -368,7 +387,7 @@ namespace FrontPipedriveIntegrationProject
                             //todo UPDATE FIELDS
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
-                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleUnresolvedCe30Days", d.staleUnresolvedCe30Days, d.staleUnresolvedCe30Days+1, "marked CE on " + ce.tagCreationDate + " and today's date is " + TimestampToLocalTime(currTimestamp) + " which is outside the window of " + conversation.CEOpenWindowDays + " days"));
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "staleUnresolvedCe30Days", d.staleUnresolvedCe30Days, d.staleUnresolvedCe30Days + 1, "marked CE on " + ce.tagCreationDate + " and today's date is " + TimestampToLocalTime(currTimestamp) + " which is outside the window of " + conversation.CEOpenWindowDays + " days"));
                                 d.staleUnresolvedCe30Days++;
 
 
@@ -388,7 +407,7 @@ namespace FrontPipedriveIntegrationProject
                     if (conversation.dictOfTags.ContainsKey(PI_TAG_ID))
                     {
                         Tag pi = conversation.dictOfTags[PI_TAG_ID];
-                        if (pi.tagCreationDate - conversation.createdAt < conversation.OpportunityOpenWindowDays * 86400 )
+                        if (pi.tagCreationDate - conversation.createdAt < conversation.OpportunityOpenWindowDays * 86400)
                         {
                             //! SUCCESSFUL RESOLVED OPPORTUNITY
                             //! CONTAINS A PI TAG, BUT NO CE TAG
@@ -404,7 +423,7 @@ namespace FrontPipedriveIntegrationProject
                                     d.lastPiDate = pi.tagCreationDate;
                                 }
 
-                                if (pi.tagCreationDate > d.autoUpdateDate)
+                                if (d.autoUpdateDateTimestamp == default(decimal) || pi.tagCreationDate > d.autoUpdateDateTimestamp)
                                 {    // Conversation tagged PI after last update, need to update history
                                      // We have a new PI (not stale)
                                      //Update in history
@@ -488,12 +507,9 @@ namespace FrontPipedriveIntegrationProject
             }
 
             //Update the auto-update date. This is done separately from the rest of the updates because we need to update the other fields that are dependent on this BEFORE making changes to this field
-            foreach (Conversation conversation in listOfConversations.Values)
+            foreach (Deal d in Conversation.listOfAllDeals.Values)
             {
-                foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
-                {
-                    d.autoUpdateDate = currTimestamp;
-                }
+                d.autoUpdateDateTimestamp = currTimestamp;
             }
 
             UpdateYearlyFields();
@@ -650,7 +666,7 @@ namespace FrontPipedriveIntegrationProject
             }
         }
 
-        private static DateTime TimestampToLocalTime(decimal timestamp)
+        public static DateTime TimestampToLocalTime(decimal timestamp)
         {
             DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0);
 
@@ -901,12 +917,23 @@ namespace FrontPipedriveIntegrationProject
         */
 
         //! UPDATES ALL FIELD FOR THE PD DEAL
-        public static void updateDealFields() {
+        public static void updateDealFields()
+        {
+            //? ================================================================
+            //? ================================================================
+            //? ================================================================
+            //? ================================================================
+            //todo DELETE THESE FIELDS
+            //? ================================================================
+            //? ================================================================
+            //? ================================================================
             Int32 LAST_OPEN_CONTACT_DATE_FIELD = 12610; // Something that we can work on aka unresolved
-            Int32 LAST_PI_DATE_FIELD = 12628;
+            string LAST_PI_DATE_FIELD = "f7cf37886fc1fdf3a5acad99de357616f568b668";
             Int32 LAST_OPEN_CE_FIELD = 12611;
             Int32 LAST_FAILED_CE_FIELD = 12629;
             Int32 LAST_CE_DO_FIELD = 12630;
+            string PI_HISTORY_FIELD = "62721168b30501206ba71f90ccc3365be658d224";
+            string AUTO_UPDATE_FIELD = "a54bb91d20b88a895343586b7628d487dfdabfb6";
 
 
             // Multiple conversations could bring up the same deals again and again
@@ -925,23 +952,65 @@ namespace FrontPipedriveIntegrationProject
             //? ===============================================================
 
 
+            foreach (Deal d in Conversation.listOfAllDeals.Values)
+            {
 
-            foreach (Conversation c in listOfConversations.Values) {
-                foreach (Deal d in c.PDDealsAffectedByConversation.Values) {
-                    if (d.lastPiDate != default(decimal)) {
-                        Console.WriteLine("FOUND A NEW PI FOR "+d.title);
-                        Console.WriteLine(c.subject);
-                        ;
-                    }if (d.lastCeDoDate != default(decimal)) {
-                        Console.WriteLine("FOUND A NEW CE_DO FOR "+ d.title);
-                        Console.WriteLine(c.subject);
-                        ;
-                    }
-                }
+                //? DELETE BLOCK OF CODE BELOW
+                //if (d.lastPiDate != default(decimal))
+                //{
+                //    Console.WriteLine("FOUND A NEW PI FOR " + d.title);
+                //    //Updating field
+                //    ;
+                //    UpdateField(deal: d, fieldId: LAST_PI_DATE_FIELD, value: TimestampToLocalTime(d.lastPiDate).ToString());
+                //    UpdateField(d, PI_HISTORY_FIELD, String.Join(" ", d.piHistoryStringArray));
+
+                //}
+                //if (d.lastCeDoDate != default(decimal))
+                //{
+                //    Console.WriteLine("FOUND A NEW CE_DO FOR " + d.title);
+                //    //Console.WriteLine(c.subject);
+                //    ;
+                //}
+                //? delete till here
+
+                var data = d.GetPostableData();
+                ;
+                ;
+                ApiAccessHelper.PostPipedriveJson("/deals/" + d.id, data, "PUT");
+                ;
             }
+
+
+
+
+
+            //todo Delete the commented code below
+            //foreach (Conversation c in listOfConversations.Values) {
+            //    foreach (Deal d in c.PDDealsAffectedByConversation.Values) {
+            //        if (d.lastPiDate != default(decimal)) {
+            //            Console.WriteLine("FOUND A NEW PI FOR "+d.title);
+            //            Console.WriteLine(c.subject);
+            //            ;
+            //        }if (d.lastCeDoDate != default(decimal)) {
+            //            Console.WriteLine("FOUND A NEW CE_DO FOR "+ d.title);
+            //            Console.WriteLine(c.subject);
+            //            ;
+            //        }
+            //    }
+            //  }
         }
 
 
+        //? todo delete if no references 
+        static void UpdateField(Deal deal, string fieldId, string value)
+        {
+            var data = new Dictionary<string, string>();
+            data.Add(fieldId, value.ToString());
+
+            ;
+            ApiAccessHelper.PostPipedriveJson("/deals/" + deal.id, data, "PUT");
+            ;
+        }
 
 
         public static void Logger(string filename, string lines)
