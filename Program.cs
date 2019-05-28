@@ -48,7 +48,7 @@ namespace FrontPipedriveIntegrationProject
         //? ==========================================
         //? ==========================================
         //todo rename to timeStamp30daysAgo
-        static Int32 timeStampOneYearAgo = currTimestamp - 1 * 20;
+        static Int32 timeStampOneYearAgo = currTimestamp - 1 * 5;
         //static Int32 timeStampOneYearAgo = currTimestamp - 1 * 86400;
         //todo last 30 days, need to change to 30 days
         //? ==========================================                                                                   
@@ -272,7 +272,7 @@ namespace FrontPipedriveIntegrationProject
                 Logger(LOG_FILE_NAME, String.Format("Pipedrive deals affected: {0}", String.Join(", ", pdTitles)));
                 pdTitles = null;
 
-
+                ;
                 // Every conversation is an opportunity
                 foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                 {
@@ -431,8 +431,12 @@ namespace FrontPipedriveIntegrationProject
                             //! SUCCESSFUL RESOLVED OPPORTUNITY
                             //! CONTAINS A PI TAG, BUT NO CE TAG
                             //todo UPDATE FIELDS
+                            
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
+                                
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "totalPi30Days", d.totalPI30Days, d.totalPI30Days+ 1, "marked PI on " + TimestampToLocalTime(pi.tagCreationDate)));
+                                d.totalPI30Days++;
                                 Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "successfulResolvedOpportunity30Days", d.successfulResolvedOpportunity30Days, d.successfulResolvedOpportunity30Days + 1, "conversation created on " + TimestampToLocalTime(conversation.createdAt) + " and marked PI on " + TimestampToLocalTime(pi.tagCreationDate)));
 
                                 d.successfulResolvedOpportunity30Days++;
@@ -552,138 +556,7 @@ namespace FrontPipedriveIntegrationProject
         }
 
 
-        //? can be removed if the other processConversation is working longer needed
-        private static void OLD_ProcessConversations()
-        {
-            //Process each conversation and update the Deal fields
-            foreach (Conversation conversation in listOfConversations.Values)
-            {
-
-                foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
-                {
-                    /*
-                        * Increase the total number of opportunities irrespective of the autoUpdateDate since total number of opportunites start from 0
-                        */
-                    d.totalOpportunities30Days++;
-                }
-
-                if (conversation.dictOfTags.ContainsKey("tag_2zbt1"))
-                {
-                    //! IMPORTANT: Contains PI tag
-                    var piTagDate = conversation.dictOfTags["tag_2zbt1"].tagCreationDate;
-                    // Updating latest PI field for all deals affected by this conversation
-                    foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values)
-                    {
-                        /*
-                            * Increase the total number of PIs irrespective of the autoUpdateDate since total number of PIs start from 0
-                            */
-                        deal.totalPI30Days++;
-                        if (deal.lastPiDate == default(decimal) || deal.lastPiDate < piTagDate)
-                        {
-                            // todo Update only if the tag is still present
-
-                            deal.lastPiDate = piTagDate;
-                            Console.WriteLine("Updating Last PI for " + deal.title + " to " + TimestampToLocalTime(deal.lastPiDate) + " due to thread with subject: " + conversation.subject);
-                        }
-                    }
-                    Console.WriteLine();
-                }
-                else if (conversation.dictOfTags.ContainsKey("tag_2zbsl"))
-                {
-                    //! IMPORTANT: Contains FAIL tag
-                    var failTagDate = conversation.dictOfTags["tag_2zbsl"].tagCreationDate;
-                    // Updating last failed CE field for all deals affected by this conversation
-                    foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values)
-                    {
-                        if (deal.lastFailedCeDate == default(decimal) || deal.lastFailedCeDate < failTagDate)
-                        {
-                            // todo Update only if the tag is still present
-                            // toda Update only if the tag has not been stale
-                            deal.lastFailedCeDate = failTagDate;
-                            Console.WriteLine("Updating Last failed CE date for " + deal.title + " to " + TimestampToLocalTime(deal.lastFailedCeDate) + " due to thread with subject: " + conversation.subject);
-                        }
-                    }
-                }
-                else if (conversation.dictOfTags.ContainsKey("tag_2qf6t"))
-                {
-                    //! IMPORTANT: Contains CE tag
-                    /*
-                        * It could be successful CE, open CE or stale CE
-                        * 1. successful CE if 'CE DO' tagged within x days of 'CE' tag
-                        * 2. stale CE if no 'CE DO' or 'fail' tags and today's date > x days after it was marked as CE
-                        * 3. open CE if no 'CE DO' or 'fail' tags AND today's date < x days of it being marked CE
-                        */
-                    decimal ceTagDate = conversation.dictOfTags["tag_2qf6t"].tagCreationDate;
-                    if (conversation.dictOfTags.ContainsKey("tag_2qf79"))
-                    {
-                        //! IMPORTANT: Contains 'CE DO' tag. Could be a success or stale
-
-                        decimal ceDoTagDate = conversation.dictOfTags["tag_2qf79"].tagCreationDate;
-
-                        if (ceDoTagDate - ceTagDate <= conversation.CEOpenWindowDays * 86400)
-                        { // Assuming emails are tagged as 'CE DO' only after 'CE'
-                            // Great! 'CE DO' was tagged within x days. We have a successful and timely CE DO
-                            // Update the lastCeDoDate for all deals
-                            foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values)
-                            {
-                                if (deal.lastCeDoDate == default(decimal) || deal.lastCeDoDate < ceDoTagDate)
-                                {
-                                    // todo Update only if the tag is still present
-                                    // todo Update only if the tag has not been stale
-                                    deal.lastCeDoDate = ceDoTagDate;
-                                    Console.WriteLine("Updating Last successful CE date for " + deal.title + " to " + TimestampToLocalTime(deal.lastCeDoDate) + " due to thread with subject: " + conversation.subject);
-                                    Console.WriteLine("Update was made because CE was tagged on " + TimestampToLocalTime(ceTagDate) + " and CE DO was tagged on " + TimestampToLocalTime(ceDoTagDate) + " which is within " + conversation.CEOpenWindowDays + " days");
-                                }
-                            }
-                        }
-                        else
-                        {
-                            // stale CE DO as the conversation was marked 'CE DO' after x days of tagging it as CE
-                            //todo Need to work on stale CE list
-                            foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values)
-                            {
-                                deal.totalStaleCE30Days++;
-                                Console.WriteLine("Stale CE for " + conversation.subject + " because CE was tagged on " + TimestampToLocalTime(ceTagDate) + " and CE DO was tagged on " + TimestampToLocalTime(ceDoTagDate) + " which is AFTER " + conversation.CEOpenWindowDays + " days");
-                            }
-
-                        }
-                    }
-                    else
-                    {
-                        //! IMPORTANT: Does not contain a 'CE DO' tag (neither fail tag)
-                        //! IMPORTANT: Could be stale or open CE
-                        decimal currTimestamp = (decimal)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-                        if (currTimestamp - ceTagDate <= conversation.CEOpenWindowDays * 86400)
-                        {
-                            //Open CE identified
-                            foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values)
-                            {
-                                // Update each deal
-                                if (deal.lastOpenCeDate == default(decimal) || deal.lastOpenCeDate < currTimestamp)
-                                {
-                                    // todo Update only if the tag is still present
-                                    deal.lastOpenCeDate = currTimestamp;
-                                    Console.WriteLine(String.Format("Reason: marked CE on {0} and today's date is {1} which is WITHIN {2} days", TimestampToLocalTime(ceTagDate), TimestampToLocalTime(currTimestamp), conversation.CEOpenWindowDays));
-                                    Console.WriteLine("Updating Last OPEN CE (UNRESOLVED) for " + deal.title + " to " + TimestampToLocalTime(currTimestamp) + " due to thread with subject: " + conversation.subject);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            //Stale CE
-                            foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values)
-                            {
-                                // Update each deal
-                                Console.WriteLine(String.Format("Reason: marked CE on {0} and today's date is {1} which is OUTSIDE {2} days", TimestampToLocalTime(ceTagDate), TimestampToLocalTime(currTimestamp), conversation.CEOpenWindowDays));
-                                Console.WriteLine("STALE CE (UNRESOLVED) for " + deal.title + " to " + TimestampToLocalTime(currTimestamp) + " due to thread with subject: " + conversation.subject);
-                            }
-                        }
-                    }
-
-                }
-                Console.WriteLine();
-            }
-        }
+       
 
         public static DateTime TimestampToLocalTime(decimal timestamp)
         {
@@ -936,6 +809,7 @@ namespace FrontPipedriveIntegrationProject
         */
 
         //! UPDATES ALL FIELD FOR THE PD DEAL
+
         public static void updateDealFields()
         {
             //? ================================================================
@@ -993,8 +867,18 @@ namespace FrontPipedriveIntegrationProject
                 //? delete till here
 
                 var data = d.GetPostableData();
-                ;
-                ;
+                
+
+
+                var oldData = ApiAccessHelper.GetResponseFromPipedriveApi("/deals/" + d.id, PD_API_KEY);
+
+                Console.WriteLine("\n" + d.title);
+                foreach (var dataElement in data) {
+                    var oldValue = "";
+                    if (oldData[dataElement.Key] != null)
+                        oldValue = oldData[dataElement.Key].ToString();
+                    Console.WriteLine(String.Format("{0,-40}\t{1,-30}\t=>\t{2,15}", Deal.pdFieldNames[dataElement.Key], oldValue, dataElement.Value));
+                }
                 ApiAccessHelper.PostPipedriveJson("/deals/" + d.id, data, "PUT");
                 ;
             }
