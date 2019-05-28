@@ -65,11 +65,11 @@ namespace FrontPipedriveIntegrationProject
 
 
             { "TOTAL_OPPORTUNITIES_30_DAYS_FIELD", "71a4bcb6a537f816ddb780f2fcc25c5da2b76fb9"},
-            { "TOTAL_PI_30_DAYS", "50d088d07814367c8f889f85177ccb89567f8d1a"},
-            { "TOTAL_FAILED_OPPORTUNITIES_30_DAYS", "c8ab13c8d2cf295c2508a5288600a3c8606d6519"},
-            { "TOTAL_OPPORTUNITIES_1_YEAR", "9f5d4acfe26d08732d9735881fa13eb6f6850eff"},
-            { "TOTAL_PI_1_YEAR", "b20b15c918ebfcc2a80a280731f2806295de2efb"},
-            { "TOTAL_FAILED_OPPORTUNITIES_1_YEAR", "c927211a25ba2b669eeab2b6f67a0adfe2d57645"},
+            { "TOTAL_PI_30_DAYS_FIELD", "50d088d07814367c8f889f85177ccb89567f8d1a"},
+            { "TOTAL_FAILED_OPPORTUNITIES_30_DAYS_FIELD", "c8ab13c8d2cf295c2508a5288600a3c8606d6519"},
+            { "TOTAL_OPPORTUNITIES_1_YEAR_FIELD", "9f5d4acfe26d08732d9735881fa13eb6f6850eff"},
+            { "TOTAL_PI_1_YEAR_FIELD", "b20b15c918ebfcc2a80a280731f2806295de2efb"},
+            { "TOTAL_FAILED_OPPORTUNITIES_1_YEAR_FIELD", "c927211a25ba2b669eeab2b6f67a0adfe2d57645"},
 
 
 
@@ -89,11 +89,11 @@ namespace FrontPipedriveIntegrationProject
             {"7f76304cff7cf24f0efaddc492402b5aafa0b9df", "LAST_CE_DO_DATE_FIELD"},
 
             {"71a4bcb6a537f816ddb780f2fcc25c5da2b76fb9", "TOTAL_OPPORTUNITIES_30_DAYS_FIELD"},
-            {"50d088d07814367c8f889f85177ccb89567f8d1a", "TOTAL_PI_30_DAYS"},
-            {"c8ab13c8d2cf295c2508a5288600a3c8606d6519", "TOTAL_FAILED_OPPORTUNITIES_30_DAYS"},
-            {"9f5d4acfe26d08732d9735881fa13eb6f6850eff", "TOTAL_OPPORTUNITIES_1_YEAR"},
-            {"b20b15c918ebfcc2a80a280731f2806295de2efb", "TOTAL_PI_1_YEAR"},
-            {"c927211a25ba2b669eeab2b6f67a0adfe2d57645", "TOTAL_FAILED_OPPORTUNITIES_1_YEAR"},
+            {"50d088d07814367c8f889f85177ccb89567f8d1a", "TOTAL_PI_30_DAYS_FIELD"},
+            {"c8ab13c8d2cf295c2508a5288600a3c8606d6519", "TOTAL_FAILED_OPPORTUNITIES_30_DAYS_FIELD"},
+            {"9f5d4acfe26d08732d9735881fa13eb6f6850eff", "TOTAL_OPPORTUNITIES_1_YEAR_FIELD"},
+            {"b20b15c918ebfcc2a80a280731f2806295de2efb", "TOTAL_PI_1_YEAR_FIELD"},
+            {"c927211a25ba2b669eeab2b6f67a0adfe2d57645", "TOTAL_FAILED_OPPORTUNITIES_1_YEAR_FIELD"},
         };
 
 
@@ -160,10 +160,10 @@ namespace FrontPipedriveIntegrationProject
             result.Add(pdFieldKeys["LAST_CE_DO_DATE_FIELD"], Program.TimestampToLocalTime(lastCeDoDate).ToString());
 
             result.Add(pdFieldKeys["TOTAL_OPPORTUNITIES_30_DAYS_FIELD"], totalOpportunities30Days.ToString());
-            result.Add(pdFieldKeys["TOTAL_PI_30_DAYS"], totalPI30Days.ToString());
-            result.Add(pdFieldKeys["TOTAL_FAILED_OPPORTUNITIES_30_DAYS"], totalFailedOpportunities30Days.ToString());
-            result.Add(pdFieldKeys["TOTAL_OPPORTUNITIES_1_YEAR"], totalOpportunitiesYearly.ToString());
-            result.Add(pdFieldKeys["TOTAL_PI_1_YEAR"], totalPiYearly.ToString());
+            result.Add(pdFieldKeys["TOTAL_PI_30_DAYS_FIELD"], totalPI30Days.ToString());
+            result.Add(pdFieldKeys["TOTAL_FAILED_OPPORTUNITIES_30_DAYS_FIELD"], totalFailedOpportunities30Days.ToString());
+            result.Add(pdFieldKeys["TOTAL_OPPORTUNITIES_1_YEAR_FIELD"], totalOpportunitiesYearly.ToString());
+            result.Add(pdFieldKeys["TOTAL_PI_1_YEAR_FIELD"], totalPiYearly.ToString());
 
             return result;
         }
