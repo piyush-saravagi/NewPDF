@@ -14,6 +14,8 @@ namespace FrontPipedriveIntegrationProject
 {
     class Program
     {
+
+       
         //? ===============================================================
         //? ===============================================================
         //? ===============================================================
@@ -48,7 +50,7 @@ namespace FrontPipedriveIntegrationProject
         //? ==========================================
         //? ==========================================
         //todo rename to timeStamp30daysAgo
-        static Int32 timeStampOneYearAgo = currTimestamp - 30 * 86400;
+        static Int32 timeStampOneYearAgo = currTimestamp - 10 * 86400;
         //static Int32 timeStampOneYearAgo = currTimestamp - 1 * 86400;
         //todo last 30 days, need to change to 30 days
         //? ==========================================                                                                   
@@ -60,24 +62,253 @@ namespace FrontPipedriveIntegrationProject
 
         static void Main(string[] args)
         {
+            EmailSender emailSender = new EmailSender();
+
 
             ScanFrontEmails();
             ProcessConversations(currTimestamp);
             Console.WriteLine("==============================");
 
-            updateDealFields();
+
+            //? ===============+++++++++++++++++++))))))))))))))))))&&&&&&&&&&&&&&&&&&%%%%%%%%%%%%%%%%%%************_)_________@@@@@@@@@@@@@
+            //updateDealFields();
+            //? ===============+++++++++++++++++++))))))))))))))))))&&&&&&&&&&&&&&&&&&%%%%%%%%%%%%%%%%%%************_)_________@@@@@@@@@@@@@
 
             //todo ADD FUNCTIONALITY TO AUTOMATICALLY DELETE HISTORY EVERY YEAR OR ASK JILL TO DO THAT 
             //todo complete implementation of ---- ClearHistoryFields -----
+
+            generateEmailBody(emailSender);
+            emailSender.SendMessage();
             Console.ReadKey();
         }
 
+        private static void generateEmailBody(EmailSender emailSender)
+        {
+            List<Conversation> successfulResolvedCe = new List<Conversation>();
+            List<Conversation> staleSuccessfulResolvedCe = new List<Conversation>();
+            List<Conversation> failedCe = new List<Conversation>();
+            List<Conversation> openUnresolvedCe = new List<Conversation>();
+            List<Conversation> staleUnresolvedCe = new List<Conversation>();
+
+            List<Conversation> successfulResolvedOpportunity = new List<Conversation>();
+            List<Conversation> staleSuccessfulResolvedOpportunities = new List<Conversation>();
+            List<Conversation> failedOpportunity = new List<Conversation>();
+            List<Conversation> openUnresolvedOpportunity = new List<Conversation>();
+            List<Conversation> staleUnresolvedOpportunity = new List<Conversation>();
+            string CE_TAG_ID = "tag_2qf6t";
+            string CE_DO_TAG_ID = "tag_2qf79";
+            string PI_TAG_ID = "tag_2zbt1";
+            string FAIL_TAG_ID = "tag_2zbsl";
+
+            foreach (Conversation conversation in listOfConversations.Values) {
+                if (conversation.dictOfTags.ContainsKey(CE_TAG_ID))
+                {
+                    // CE opportunity
+                    Tag ce = conversation.dictOfTags[CE_TAG_ID];
+                    
+                    if (conversation.dictOfTags.ContainsKey(CE_DO_TAG_ID))
+                    {
+
+                        Tag ce_do = conversation.dictOfTags[CE_DO_TAG_ID];
+                        if (ce_do.tagCreationDate - ce.tagCreationDate < conversation.CEOpenWindowDays * 86400)
+                        {
+                            //! SUCCESSFUL RESOLVED CE 
+                            //! CONTAINS CE TAG AND WAS MARKED CE-DO ON TIME
+                            successfulResolvedCe.Add(conversation);
+                        }
+                        else
+                        {
+                            //! STALE RESOLVED CE
+                            //! CONTAINS CE AND CE DO TAGS BUT WAS NOT MARKED CE-DO ON TIME 
+                            staleSuccessfulResolvedCe.Add(conversation);
+                        }
+                    }
+                    else if (conversation.dictOfTags.ContainsKey(FAIL_TAG_ID))
+                    {
+                        //! FAILED RESOLVED CE
+                        //! CONTAINS CE TAG AND FAIL TAG
+                        failedCe.Add(conversation);
+                    }
+                    else
+                    {
+                        // Unresolved CE, not marked with CE-DO or FAIL tags
+                        if (currTimestamp - ce.tagCreationDate < conversation.CEOpenWindowDays * 86400)
+                        {
+                            //!  OPEN UNRESOLVED CE 
+                            //! CONTAINS CE TAG, WAS NOT MARKED CE-DO OR FAIL AND IS WITHIN THE TIME WINDOW FOR OPEN CE
+                            openUnresolvedCe.Add(conversation);
+                        }
+                        else
+                        {
+                            //! STALE UNRESOLVED CE
+                            //! CONTAINS CE AND WAS NOT MARKED CE-DO OR FAIL ON TIME
+                            staleUnresolvedCe.Add(conversation);
+                        }
+                    }
+                }
+                else
+                {
+                    // Non CE opportunity
+                    if (conversation.dictOfTags.ContainsKey(PI_TAG_ID))
+                    {
+                        Tag pi = conversation.dictOfTags[PI_TAG_ID];
+                        if (pi.tagCreationDate - conversation.createdAt < conversation.OpportunityOpenWindowDays * 86400)
+                        {
+                            //! SUCCESSFUL RESOLVED OPPORTUNITY
+                            //! CONTAINS A PI TAG, BUT NO CE TAG
+                            successfulResolvedOpportunity.Add(conversation);
+                        }
+                        else
+                        {
+                            //! STALE RESOLVED OPPORTUNITY
+                            //! CONTAINS A PI TAG BUT OUTSIDE THE WINDOW
+                            staleSuccessfulResolvedOpportunities.Add(conversation);
+                        }
+                    }
+                    else if (conversation.dictOfTags.ContainsKey(FAIL_TAG_ID))
+                    {
+                        //! FAILED OPPORTUNITY
+                        //! CONTAINS A FAIL TAG, BUT NO CE
+                        failedOpportunity.Add(conversation);
+                    }
+                    else
+                    {
+                        //Unresolved Opportunity
+                        if (currTimestamp - conversation.createdAt < conversation.OpportunityOpenWindowDays * 86400)
+                        {
+                            //! OPEN UNRESOLVED OPPORTUNITY
+                            //! DOES NOT CONTAIN A CE, FAIL, PI TAG BUT IS WITHIN THE OPEN WINDOW
+                            openUnresolvedOpportunity.Add(conversation);
+
+                        }
+                        else
+                        {
+                            //! STALE UNRESOLVED OPPORTUNITY
+                            //! DOES NOT CONTAIN A CE, FAIL, PI TAG BUT IS WITHIN THE OPEN WINDOW
+                            staleUnresolvedOpportunity.Add(conversation);
+                        }
+                    }
+                }
+            }
+
+            emailSender.AppendLineToEmailBody("CE-DOs ON TIME. Good job on these!");
+            emailSender.AppendLineToEmailBody("---------------------------------------------");
+            foreach (Conversation c in successfulResolvedCe) {
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                    emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id+")");
+                }
+            }
+            emailSender.AppendLineToEmailBody("");
+
+
+            emailSender.AppendLineToEmailBody("CE-DOs AFTER GOING STALE. Good job but try improve the time taken to reach DO");
+            emailSender.AppendLineToEmailBody("---------------------------------------------");
+            foreach (Conversation c in staleSuccessfulResolvedCe)
+            {
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                    emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id + ")");
+                }
+            }
+            emailSender.AppendLineToEmailBody("");
+
+            emailSender.AppendLineToEmailBody("Failed CEs. These should not happen often");
+            emailSender.AppendLineToEmailBody("---------------------------------------------");
+            foreach (Conversation c in failedCe)
+            {
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                    emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id + ")");
+                }
+            }
+            emailSender.AppendLineToEmailBody("");
+
+            emailSender.AppendLineToEmailBody("Open unresolved CEs. Quick, get them to CE-DOs before they go stale!");
+            emailSender.AppendLineToEmailBody("---------------------------------------------");
+            foreach (Conversation c in openUnresolvedCe)
+            {
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                    emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id + ")");
+                }
+            }
+            emailSender.AppendLineToEmailBody("");
+
+            emailSender.AppendLineToEmailBody("Unresolved CEs that have gone stale - Immediate action needed");
+            emailSender.AppendLineToEmailBody("---------------------------------------------");
+            foreach (Conversation c in staleUnresolvedCe)
+            {
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                    emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id + ")");
+                }
+            }
+            emailSender.AppendLineToEmailBody("");
+
+            //====
+            emailSender.AppendLineToEmailBody("PIs ON TIME. Good job on these!");
+            emailSender.AppendLineToEmailBody("---------------------------------------------");
+            foreach (Conversation c in successfulResolvedOpportunity)
+            {
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                    emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id + ")");
+                }
+            }
+            emailSender.AppendLineToEmailBody("");
+
+
+            emailSender.AppendLineToEmailBody("PIs AFTER GOING STALE. Good job but try improve the time taken to reach DO");
+            emailSender.AppendLineToEmailBody("---------------------------------------------");
+            foreach (Conversation c in staleSuccessfulResolvedOpportunities)
+            {
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                    emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id + ")");
+                }
+            }
+            emailSender.AppendLineToEmailBody("");
+
+            emailSender.AppendLineToEmailBody("Failed Opportunities. These should not happen often");
+            emailSender.AppendLineToEmailBody("---------------------------------------------");
+            foreach (Conversation c in failedOpportunity)
+            {
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                    emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id + ")");
+                }
+            }
+            emailSender.AppendLineToEmailBody("");
+
+            emailSender.AppendLineToEmailBody("Open unresolved opportunities. Quick, get them to PI before they go stale!");
+            emailSender.AppendLineToEmailBody("---------------------------------------------");
+            foreach (Conversation c in openUnresolvedOpportunity)
+            {
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                    emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id + ")");
+                }
+            }
+            emailSender.AppendLineToEmailBody("");
+
+            emailSender.AppendLineToEmailBody("Unresolved opportunities that have gone stale - Immediate action needed");
+            emailSender.AppendLineToEmailBody("---------------------------------------------");
+            foreach (Conversation c in staleUnresolvedOpportunity)
+            {
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                    emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id + ")");
+                }
+            }
+            emailSender.AppendLineToEmailBody("");
+        }
 
         public static void ClearHistoryFields()
         {
 
             //todo COMPLETE IMPLEMENTATION
-            throw new NotImplementedException();
+            throw new NotImplementedException(); 
         }
 
 
@@ -124,8 +355,8 @@ namespace FrontPipedriveIntegrationProject
               */
 
 
-            //List<string> idsOfinboxesThatAffectPdFields = new List<string>(new string[] { "inb_6061", "inb_600h", "inb_g84l" });
-            List<string> idsOfinboxesThatAffectPdFields = new List<string>(new string[] { "inb_g84l" });
+            List<string> idsOfinboxesThatAffectPdFields = new List<string>(new string[] { "inb_6061", "inb_600h", "inb_g84l" });
+            //List<string> idsOfinboxesThatAffectPdFields = new List<string>(new string[] { "inb_g84l" });
 
             foreach (string inboxId in idsOfinboxesThatAffectPdFields)
             {
