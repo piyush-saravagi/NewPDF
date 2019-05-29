@@ -51,7 +51,7 @@ namespace FrontPipedriveIntegrationProject
         //? ==========================================
         //todo rename to timeStamp30daysAgo
         static Int32 timeStampOneYearAgo = currTimestamp - 10 * 86400;
-        //static Int32 timeStampOneYearAgo = currTimestamp - 1 * 86400;
+        //static Int32 timeStampOneYearAgo = currTimestamp - 30 * 86400;
         //todo last 30 days, need to change to 30 days
         //? ==========================================                                                                   
         //? ==========================================
@@ -82,8 +82,14 @@ namespace FrontPipedriveIntegrationProject
             Console.ReadKey();
         }
 
+
+        
+
+
         private static void generateEmailBody(EmailSender emailSender)
         {
+            // Better option would have been to use hashsets, but to keep things simple, using lists
+
             List<Conversation> successfulResolvedCe = new List<Conversation>();
             List<Conversation> staleSuccessfulResolvedCe = new List<Conversation>();
             List<Conversation> failedCe = new List<Conversation>();
@@ -190,6 +196,58 @@ namespace FrontPipedriveIntegrationProject
                     }
                 }
             }
+
+
+            emailSender.AppendLineToEmailBody("<b>Piyush</b><hr>");
+            foreach (Conversation c in openUnresolvedCe)
+            {
+                if (c.assignee == "Piyush") 
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                    string link = @"https://app.frontapp.com/open/" + c.id;
+                    emailSender.AppendLineToEmailBody(String.Format("<a href={0}><b>COMPELLING EVENT: {1}</b></a>", link, c.subject));
+                    //emailSender.AppendLineToEmailBody("<b>COMPELLING EVENT: </b>"+c.subject + @" (https://app.frontapp.com/open/" + c.id + ")");
+                }
+            }
+            foreach (Conversation c in staleUnresolvedCe)
+            {
+                if (c.assignee == "Piyush") 
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                        string link = @"https://app.frontapp.com/open/" + c.id;
+                        emailSender.AppendLineToEmailBody(String.Format("<a href={0}><b<font color=red>COMPELLING EVENT: {1}</font></b></a>", link, c.subject));
+                        //emailSender.AppendLineToEmailBody("<b>COMPELLING EVENT: " + "<font color=red>" + c.subject + "</font></b>"+@" (https://app.frontapp.com/open/" + c.id + ")");
+                    }
+            }
+            foreach (Conversation c in openUnresolvedOpportunity)
+            {
+                if (c.assignee == "Piyush")
+                    if (c.PDDealsAffectedByConversation.Count != 0)
+                    {
+                        string link = @"https://app.frontapp.com/open/" + c.id;
+                        emailSender.AppendLineToEmailBody(String.Format("<a href={0}>{1}</a>", link, c.subject));
+                        //emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id + ")");
+                    }
+            }
+            foreach (Conversation c in staleUnresolvedOpportunity)
+            {
+                if (c.assignee == "Piyush")
+                    if (c.PDDealsAffectedByConversation.Count != 0)
+                    {
+                        string link = @"https://app.frontapp.com/open/" + c.id;
+                        emailSender.AppendLineToEmailBody(String.Format("<a href={0}><font color=red>{1}</font></a>", link, c.subject));
+                        //emailSender.AppendLineToEmailBody("<font color=red>"+c.subject+"</font>" + @" (https://app.frontapp.com/open/" + c.id + ")");
+                    }
+            }
+            emailSender.AppendLineToEmailBody("");
+
+
+            //======================================================================
+            emailSender.AppendLineToEmailBody("<br><br><br><br><br><br><br>Details<br>");
+            //======================================================================
+
+
+
 
             emailSender.AppendLineToEmailBody("CE-DOs ON TIME. Good job on these!");
             emailSender.AppendLineToEmailBody("---------------------------------------------");

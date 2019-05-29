@@ -22,6 +22,7 @@ namespace FrontPipedriveIntegrationProject
         public decimal lastMessage;
         public int CEOpenWindowDays = 10;   // Number of days to resolve CE before the CE goes stale
         public int OpportunityOpenWindowDays = 10;   // Number of days to resolve opportunity before the opportunity goes stale
+        public string assignee;
 
 
         public Conversation(dynamic conv, dynamic events)
@@ -31,6 +32,7 @@ namespace FrontPipedriveIntegrationProject
             this.id = conv["id"];
             this.subject = conv["subject"];
             this.primaryEmail = conv["recipient"]["handle"];
+            this.assignee = conv["assignee"]["first_name"];
             this.createdAt = conv["created_at"];
             this.lastMessage = conv["last_message"]["created_at"];
 

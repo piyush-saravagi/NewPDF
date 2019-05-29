@@ -20,8 +20,9 @@ namespace FrontPipedriveIntegrationProject
             smtpServer = new SmtpClient("smtp.gmail.com");
 
             mail.From = new MailAddress("emailsender1995@gmail.com");
-            mail.To.Add("support@leansentry.com");
+            mail.To.Add("piyush@leanserver.com");
             mail.Subject = "Conversation summaries";
+            mail.IsBodyHtml = true;
 
 
             smtpServer.Port = 587;
@@ -45,7 +46,7 @@ namespace FrontPipedriveIntegrationProject
 
         public void AppendLineToEmailBody(string line)
         {
-            body = body + line + "\n";
+            body = body + line + "<br>";
         }
     }
 }
