@@ -73,8 +73,10 @@ namespace FrontPipedriveIntegrationProject
             //todo  FIX TAGS VALUES
 
 
-            foreach (var e in events) {
-                if (e["type"] == "tag") {
+            foreach (var e in events)
+            {
+                if (e["type"] == "tag")
+                {
                     Tag t;
                     if (!dictOfTags.TryGetValue(e["target"]["data"]["id"], out t))
                     {
@@ -85,10 +87,11 @@ namespace FrontPipedriveIntegrationProject
                     }
                 }
             }
-            
+
 
 
             //? WILL BE REMOVED IF THE ABOVE LOOP IS FIXED
+            /*
             if (fullConversationData["tags"].Length != 0)
             {
                 foreach (var tag in fullConversationData["tags"])
@@ -107,6 +110,7 @@ namespace FrontPipedriveIntegrationProject
 
 
             }
+            */
             //Adding the tags to the fields
             //foreach(var tag in fullConversationData["tags"]){
             //    if (tag != null && dictOfTags.ContainsKey(tag[""])) { //not empty tag list

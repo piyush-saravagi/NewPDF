@@ -48,7 +48,7 @@ namespace FrontPipedriveIntegrationProject
         //? ==========================================
         //? ==========================================
         //todo rename to timeStamp30daysAgo
-        static Int32 timeStampOneYearAgo = currTimestamp - 1 * 5;
+        static Int32 timeStampOneYearAgo = currTimestamp - 30 * 86400;
         //static Int32 timeStampOneYearAgo = currTimestamp - 1 * 86400;
         //todo last 30 days, need to change to 30 days
         //? ==========================================                                                                   
@@ -166,7 +166,7 @@ namespace FrontPipedriveIntegrationProject
 
 
                         //Get the last event for this conversation
-                        
+
                         var latestEventDate = conversationEvents[0]["emitted_at"];
 
                         //if (c.lastMessage < timeStampOneYearAgo)
@@ -198,7 +198,7 @@ namespace FrontPipedriveIntegrationProject
                     //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
                     //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
                     //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
-                    break;
+                    //break;
                     //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
                     //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
                     //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
@@ -304,9 +304,9 @@ namespace FrontPipedriveIntegrationProject
                              // We have a new CE (Resolved/Unresolved doesn't matter)
                              //Update in history
                             int monthToUpdate = TimestampToLocalTime(ce.tagCreationDate).Month - 1;
-                            Int32 temp = Int32.Parse(d.contactHistoryStringArray[monthToUpdate]) + 1;
+                            Int32 temp = Int32.Parse(d.ceHistoryStringArray[monthToUpdate]) + 1;
                             //Update it back to the deal
-                            d.contactHistoryStringArray[monthToUpdate] = temp.ToString();
+                            d.ceHistoryStringArray[monthToUpdate] = temp.ToString();
                             //todo add log to history if needed 
                         }
                     }
@@ -431,11 +431,11 @@ namespace FrontPipedriveIntegrationProject
                             //! SUCCESSFUL RESOLVED OPPORTUNITY
                             //! CONTAINS A PI TAG, BUT NO CE TAG
                             //todo UPDATE FIELDS
-                            
+
                             foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                             {
-                                
-                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "totalPi30Days", d.totalPI30Days, d.totalPI30Days+ 1, "marked PI on " + TimestampToLocalTime(pi.tagCreationDate)));
+
+                                Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "totalPi30Days", d.totalPI30Days, d.totalPI30Days + 1, "marked PI on " + TimestampToLocalTime(pi.tagCreationDate)));
                                 d.totalPI30Days++;
                                 Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "successfulResolvedOpportunity30Days", d.successfulResolvedOpportunity30Days, d.successfulResolvedOpportunity30Days + 1, "conversation created on " + TimestampToLocalTime(conversation.createdAt) + " and marked PI on " + TimestampToLocalTime(pi.tagCreationDate)));
 
@@ -533,30 +533,17 @@ namespace FrontPipedriveIntegrationProject
             foreach (Deal d in Conversation.listOfAllDeals.Values)
             {
                 d.autoUpdateDateTimestamp = currTimestamp;
-            }
-
-            UpdateYearlyFields();
-        }
-
-        private static void UpdateYearlyFields()
-        {
-            foreach (Conversation c in listOfConversations.Values)
-            {
-                foreach (Deal d in c.PDDealsAffectedByConversation.Values)
+                for (int i = 0; i < 12; i++)
                 {
-                    for (int i = 0; i < 12; i++)
-                    {
-                        d.totalOpportunitiesYearly += Int32.Parse(d.contactHistoryStringArray[i]);
-                        d.totalPiYearly += Int32.Parse(d.piHistoryStringArray[i]);
-                        d.totalCeYearly += Int32.Parse(d.ceHistoryStringArray[i]);
-                        d.totalCeDoYearly += Int32.Parse(d.ceDoHistoryStringArray[i]);
-                    }
+                    d.totalOpportunitiesYearly += Int32.Parse(d.contactHistoryStringArray[i]);
+                    d.totalPiYearly += Int32.Parse(d.piHistoryStringArray[i]);
+                    d.totalCeYearly += Int32.Parse(d.ceHistoryStringArray[i]);
+                    d.totalCeDoYearly += Int32.Parse(d.ceDoHistoryStringArray[i]);
                 }
             }
+
         }
 
-
-       
 
         public static DateTime TimestampToLocalTime(decimal timestamp)
         {
@@ -812,23 +799,6 @@ namespace FrontPipedriveIntegrationProject
 
         public static void updateDealFields()
         {
-            //? ================================================================
-            //? ================================================================
-            //? ================================================================
-            //? ================================================================
-            //todo DELETE THESE FIELDS
-            //? ================================================================
-            //? ================================================================
-            //? ================================================================
-            Int32 LAST_OPEN_CONTACT_DATE_FIELD = 12610; // Something that we can work on aka unresolved
-            string LAST_PI_DATE_FIELD = "f7cf37886fc1fdf3a5acad99de357616f568b668";
-            Int32 LAST_OPEN_CE_FIELD = 12611;
-            Int32 LAST_FAILED_CE_FIELD = 12629;
-            Int32 LAST_CE_DO_FIELD = 12630;
-            string PI_HISTORY_FIELD = "62721168b30501206ba71f90ccc3365be658d224";
-            string AUTO_UPDATE_FIELD = "a54bb91d20b88a895343586b7628d487dfdabfb6";
-
-
             // Multiple conversations could bring up the same deals again and again
             // Making sure they are updated just once
             //? ===============================================================
@@ -867,17 +837,19 @@ namespace FrontPipedriveIntegrationProject
                 //? delete till here
 
                 var data = d.GetPostableData();
-                
-
 
                 var oldData = ApiAccessHelper.GetResponseFromPipedriveApi("/deals/" + d.id, PD_API_KEY);
 
                 Console.WriteLine("\n" + d.title);
-                foreach (var dataElement in data) {
+                Logger(LOG_FILE_NAME, "\n" + d.title + "\n----------------------");
+                foreach (var dataElement in data)
+                {
                     var oldValue = "";
                     if (oldData[dataElement.Key] != null)
                         oldValue = oldData[dataElement.Key].ToString();
                     Console.WriteLine(String.Format("{0,-40}\t{1,-30}\t=>\t{2,15}", Deal.pdFieldNames[dataElement.Key], oldValue, dataElement.Value));
+
+                    Logger(LOG_FILE_NAME, String.Format("{0,-40}\t{1,-30}\t=>\t{2,15}", Deal.pdFieldNames[dataElement.Key], oldValue, dataElement.Value));
                 }
                 ApiAccessHelper.PostPipedriveJson("/deals/" + d.id, data, "PUT");
                 ;

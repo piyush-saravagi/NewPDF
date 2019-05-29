@@ -71,8 +71,12 @@ namespace FrontPipedriveIntegrationProject
             { "TOTAL_PI_1_YEAR_FIELD", "b20b15c918ebfcc2a80a280731f2806295de2efb"},
             { "TOTAL_FAILED_OPPORTUNITIES_1_YEAR_FIELD", "c927211a25ba2b669eeab2b6f67a0adfe2d57645"},
 
-
-
+            { "TOTAL_CE_30_DAYS_FIELD", "1719116818456b1350f9b35589963160808c212f"},
+            { "TOTAL_CE_DO_30_DAYS_FIELD", "e0d3dac72ab3c8759191b596125840437de53492"},
+            { "TOTAL_FAILED_CE_30_DAYS_FIELD", "0f655f3888028ba246f7a4db8b06833474c591b0"},
+            { "TOTAL_CE_1_YEAR_FIELD", "26f25d835fb11320f19d4cd7521aeb5a16ebe9c1"},
+            { "TOTAL_CE_DO_1_YEAR_FIELD", "0d691c90d13f3a3f374209b1162629a51c3d8369"},
+            //{ "TOTAL_FAILED_CE_1_YEAR_FIELD", "c8ab13c8d2cf295c2508a5288600a3c8606d6519"},
 
         };
 
@@ -94,10 +98,18 @@ namespace FrontPipedriveIntegrationProject
             {"9f5d4acfe26d08732d9735881fa13eb6f6850eff", "TOTAL_OPPORTUNITIES_1_YEAR_FIELD"},
             {"b20b15c918ebfcc2a80a280731f2806295de2efb", "TOTAL_PI_1_YEAR_FIELD"},
             {"c927211a25ba2b669eeab2b6f67a0adfe2d57645", "TOTAL_FAILED_OPPORTUNITIES_1_YEAR_FIELD"},
+
+            {"1719116818456b1350f9b35589963160808c212f", "TOTAL_CE_30_DAYS_FIELD"},
+            {"e0d3dac72ab3c8759191b596125840437de53492", "TOTAL_CE_DO_30_DAYS_FIELD"},
+            {"0f655f3888028ba246f7a4db8b06833474c591b0", "TOTAL_FAILED_CE_30_DAYS_FIELD"},
+            {"26f25d835fb11320f19d4cd7521aeb5a16ebe9c1", "TOTAL_CE_1_YEAR_FIELD"},
+            {"0d691c90d13f3a3f374209b1162629a51c3d8369", "TOTAL_CE_DO_1_YEAR_FIELD"},
+            //{"c8ab13c8d2cf295c2508a5288600a3c8606d6519", "TOTAL_FAILED_CE_1_YEAR_FIELD"},
+
         };
 
 
-        
+
 
 
         public Deal(dynamic data)
@@ -113,12 +125,12 @@ namespace FrontPipedriveIntegrationProject
 
             id = (Int32)data["id"];
             title = (string)data["title"];
-            if (data[AUTO_UPDATE_DATE_FIELD_ID] != null && !data[PI_HISTORY_FIELD_ID].Equals(""))
+            if (data[AUTO_UPDATE_DATE_FIELD_ID] != null && !data[AUTO_UPDATE_DATE_FIELD_ID].Equals(""))
             { //Update only if the there was an auto-update ever. Else keep it to default 0 which indicates the last update was at epoch time (Jan 1, 1970) 
                 autoUpdateDateTimestamp = data[AUTO_UPDATE_DATE_FIELD_ID];
             }
 
-            if (data[CONTACT_HISTORY_FIELD_ID] != null && !data[PI_HISTORY_FIELD_ID].Equals(""))
+            if (data[CONTACT_HISTORY_FIELD_ID] != null && !data[CONTACT_HISTORY_FIELD_ID].Equals(""))
             { //Update only if the contact history field has some value already
                 contactHistoryStringArray = data[CONTACT_HISTORY_FIELD_ID].Split();
             }
@@ -128,12 +140,12 @@ namespace FrontPipedriveIntegrationProject
                 piHistoryStringArray = data[PI_HISTORY_FIELD_ID].Split();
             }
 
-            if (data[CE_HISTORY_FIELD_ID] != null && !data[PI_HISTORY_FIELD_ID].Equals(""))
+            if (data[CE_HISTORY_FIELD_ID] != null && !data[CE_HISTORY_FIELD_ID].Equals(""))
             { //Update only if the contact history field has some value already
                 ceHistoryStringArray = data[CE_HISTORY_FIELD_ID].Split();
             }
 
-            if (data[CE_DO_HISTORY_FIELD_ID] != null && !data[PI_HISTORY_FIELD_ID].Equals(""))
+            if (data[CE_DO_HISTORY_FIELD_ID] != null && !data[CE_DO_HISTORY_FIELD_ID].Equals(""))
             { //Update only if the contact history field has some value already
                 ceDoHistoryStringArray = data[CE_DO_HISTORY_FIELD_ID].Split();
             }
@@ -143,7 +155,6 @@ namespace FrontPipedriveIntegrationProject
         public Dictionary<string, string> GetPostableData()
         {
 
-
             Dictionary<string, string> result = new Dictionary<string, string>();
 
             result.Add(pdFieldKeys["AUTO_UPDATE_FIELD"], autoUpdateDateTimestamp.ToString());
@@ -152,7 +163,7 @@ namespace FrontPipedriveIntegrationProject
             result.Add(pdFieldKeys["CONTACT_HISTORY_FIELD"], String.Join(" ", contactHistoryStringArray));
             result.Add(pdFieldKeys["CE_HISTORY_FIELD"], String.Join(" ", ceHistoryStringArray));
             result.Add(pdFieldKeys["CE_DO_HISTORY_FIELD"], String.Join(" ", ceDoHistoryStringArray));
-            
+
             result.Add(pdFieldKeys["LAST_PI_DATE_FIELD"], Program.TimestampToLocalTime(lastPiDate).ToString());
             result.Add(pdFieldKeys["LAST_OPEN_CONTACT_DATE_FIELD"], Program.TimestampToLocalTime(lastOpenContactDate).ToString());
             result.Add(pdFieldKeys["LAST_OPEN_CE_DATE_FIELD"], Program.TimestampToLocalTime(lastOpenCeDate).ToString());
@@ -164,6 +175,12 @@ namespace FrontPipedriveIntegrationProject
             result.Add(pdFieldKeys["TOTAL_FAILED_OPPORTUNITIES_30_DAYS_FIELD"], totalFailedOpportunities30Days.ToString());
             result.Add(pdFieldKeys["TOTAL_OPPORTUNITIES_1_YEAR_FIELD"], totalOpportunitiesYearly.ToString());
             result.Add(pdFieldKeys["TOTAL_PI_1_YEAR_FIELD"], totalPiYearly.ToString());
+
+            result.Add(pdFieldKeys["TOTAL_CE_30_DAYS_FIELD"], totalCE30Days.ToString());
+            result.Add(pdFieldKeys["TOTAL_CE_DO_30_DAYS_FIELD"], successfulResolvedCe30Days.ToString());
+            result.Add(pdFieldKeys["TOTAL_FAILED_CE_30_DAYS_FIELD"], failedResolvedCe30Days.ToString());
+            result.Add(pdFieldKeys["TOTAL_CE_1_YEAR_FIELD"], totalCeYearly.ToString());
+            result.Add(pdFieldKeys["TOTAL_CE_DO_1_YEAR_FIELD"], totalCeDoYearly.ToString());
 
             return result;
         }
