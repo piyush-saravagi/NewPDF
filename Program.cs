@@ -35,7 +35,7 @@ namespace FrontPipedriveIntegrationProject
         //todo ====Count CE-DO as a PI ======
         //todo ##############################
         //todo move to Helper class safely and then outside the source code
-        public const Int32 DAYS_TO_SCAN = 30;
+        public const Int32 DAYS_TO_SCAN = 10;
         public const string PD_API_KEY = "0b9f8a7f360f41c3264ab14ed5d2a760ecaf39f3";
         public const string FRONT_API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzY29wZXMiOlsic2hhcmVkOioiXSwiaWF0IjoxNTU2MzEzNjI3LCJpc3MiOiJmcm9udCIsInN1YiI6ImxlYW5zZXJ2ZXIiLCJqdGkiOiI5MDZkYTc3NjA2NWVkOTA5In0.b28IHdaeo0YXwq4dy-xEbzG54RkHnXcOwrbMpbJ5LyY";
         ApiAccessHelper apiHelper = new ApiAccessHelper();
@@ -320,8 +320,28 @@ namespace FrontPipedriveIntegrationProject
             allConvByState.Add("failedOpportunity", failedOpportunity);
             allConvByState.Add("openUnresolvedOpportunity", openUnresolvedOpportunity);
             allConvByState.Add("staleUnresolvedOpportunity", staleUnresolvedOpportunity);
+
+            var convByAssignee = (successfulResolvedCe.Concat(successfulResolvedOpportunity)).GroupBy(x => x.assignee).Select(g => new { assignee = g.Key, conversations = g }).OrderByDescending(g => g.conversations.Count());
+
+            List<string> assignees = new List<string>();
+
+            foreach (var x in convByAssignee) {
+                assignees.Add(x.assignee);
+            }
+            if (!assignees.Contains("Keegan")) assignees.Add("Keegan");
+            if (!assignees.Contains("Jill")) assignees.Add("Jill");
+            if (!assignees.Contains("Mike")) assignees.Add("Mike");
+            if (!assignees.Contains("Piyush")) assignees.Add("Piyush");
+            ;
+
             
 
+            //var piDoCountsForPiyush = from success in successfulResolvedCe.Concat(successfulResolvedOpportunity) group success by success.assignee;
+            //;
+
+            //foreach (var x in piDoCountsForPiyush) {
+            //    ;
+            //}
 
             emailSender.AppendLineToEmailBody("Hey team,<p>Here is a summary of how we are performing with the opportunities we've had in the past" + DAYS_TO_SCAN +" days<br>");
             var totalOp = successfulResolvedCe.Count + staleSuccessfulResolvedCe.Count + failedCe.Count + openUnresolvedCe.Count + staleUnresolvedCe.Count + successfulResolvedOpportunity.Count + staleSuccessfulResolvedOpportunities.Count + failedOpportunity.Count + openUnresolvedOpportunity.Count + staleUnresolvedOpportunity.Count;
@@ -330,10 +350,10 @@ namespace FrontPipedriveIntegrationProject
 
             emailSender.AppendLineToEmailBody("These are the unresolved conversations grouped by the person they are assigned to. Red indicates a conversation that has gone stale, bold indicates a compelling event, and a bold in red indicates a stale compelling event <br>");
 
-            appendConversationsByAssigneeToEmailBody(emailSender, "Mike", allConvByState);
-            appendConversationsByAssigneeToEmailBody(emailSender, "Keegan", allConvByState);
-            appendConversationsByAssigneeToEmailBody(emailSender, "Jill", allConvByState);
-            appendConversationsByAssigneeToEmailBody(emailSender, "Piyush", allConvByState);
+            foreach (var a in assignees)
+            {
+                appendConversationsByAssigneeToEmailBody(emailSender, a, allConvByState);
+            }
             
 
             //======================================================================
@@ -637,17 +657,10 @@ namespace FrontPipedriveIntegrationProject
                 Logger(LOG_FILE_NAME, String.Format("Conversation subject: {0}", conversation.subject));
                 Logger(LOG_FILE_NAME, String.Format("Conversation id: {0}", conversation.id));
                 Logger(LOG_FILE_NAME, String.Format("Email IDs: {0}", String.Join(", ", conversation.setOfEmails)));
-                //Logging PD Fields
-                List<string> pdTitles = new List<string>();
-                //? could have used linq as well
-                foreach (Deal deal in conversation.PDDealsAffectedByConversation.Values)
-                {
-                    pdTitles.Add(deal.title);
-                }
-                Logger(LOG_FILE_NAME, String.Format("Pipedrive deals affected: {0}", String.Join(", ", pdTitles)));
-                pdTitles = null;
+                
+                var linqQuery = from deal in conversation.PDDealsAffectedByConversation.Values select deal.title;
+                Logger(LOG_FILE_NAME, String.Format("Pipedrive deals affected: {0}", String.Join(", ", linqQuery)));
 
-                ;
                 // Every conversation is an opportunity
                 foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                 {

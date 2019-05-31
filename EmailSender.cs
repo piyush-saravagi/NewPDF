@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace FrontPipedriveIntegrationProject
 {
-
+    //todo CONVERT BODY TO STRING BUILDER
     class EmailSender
     {
         SmtpClient smtpServer;
