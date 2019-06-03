@@ -16,9 +16,7 @@ namespace FrontPipedriveIntegrationProject
     class Program
     {
         //todo move to Helper class safely and then outside the source code
-        public const Int32 DAYS_TO_SCAN =  30;
-        public const string PD_API_KEY = "0b9f8a7f360f41c3264ab14ed5d2a760ecaf39f3";
-        public const string FRONT_API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzY29wZXMiOlsic2hhcmVkOioiXSwiaWF0IjoxNTU2MzEzNjI3LCJpc3MiOiJmcm9udCIsInN1YiI6ImxlYW5zZXJ2ZXIiLCJqdGkiOiI5MDZkYTc3NjA2NWVkOTA5In0.b28IHdaeo0YXwq4dy-xEbzG54RkHnXcOwrbMpbJ5LyY";
+        public const Int32 DAYS_TO_SCAN =  1;
         ApiAccessHelper apiHelper = new ApiAccessHelper();
         static Dictionary<string, Conversation> listOfConversations = new Dictionary<string, Conversation>();
 
@@ -29,7 +27,9 @@ namespace FrontPipedriveIntegrationProject
 
         static void Main(string[] args)
         {
-           
+            ApiAccessHelper.PD_API_KEY = "0b9f8a7f360f41c3264ab14ed5d2a760ecaf39f3";
+            ApiAccessHelper.FRONT_API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzY29wZXMiOlsic2hhcmVkOioiXSwiaWF0IjoxNTU2MzEzNjI3LCJpc3MiOiJmcm9udCIsInN1YiI6ImxlYW5zZXJ2ZXIiLCJqdGkiOiI5MDZkYTc3NjA2NWVkOTA5In0.b28IHdaeo0YXwq4dy-xEbzG54RkHnXcOwrbMpbJ5LyY";
+
             ScanFrontEmails();
             ProcessConversations(currTimestamp);
             Console.WriteLine("==============================");
@@ -492,7 +492,7 @@ namespace FrontPipedriveIntegrationProject
             {
                 //!0. PAGINATION
                 Console.WriteLine("Conversations from " + inboxId + "\n___________________");
-                var response = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/inboxes/{0}/conversations", inboxId), FRONT_API_KEY);
+                var response = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/inboxes/{0}/conversations", inboxId));
                 bool hasNextPage = true;
                 int count = 0;
                 while (hasNextPage)
@@ -509,7 +509,7 @@ namespace FrontPipedriveIntegrationProject
                         Console.WriteLine("Last message on " + TimestampToLocalTime(conversation["last_message"]["created_at"]));
 
                         string eventsRelativeUrl = conversation["_links"]["related"]["events"].Replace("https://api2.frontapp.com", "");
-                        var conversationEvents = ApiAccessHelper.GetResponseFromFrontApi(eventsRelativeUrl, FRONT_API_KEY)["_results"];
+                        var conversationEvents = ApiAccessHelper.GetResponseFromFrontApi(eventsRelativeUrl)["_results"];
 
 
                         Conversation c;
@@ -550,7 +550,7 @@ namespace FrontPipedriveIntegrationProject
                         string pageToken = response["_pagination"]["next"];
                         pageToken = pageToken.Replace("https://api2.frontapp.com", ""); //Stripping the api url as we need the relative url only
                         Console.WriteLine("HAS NEXT PAGE");
-                        response = ApiAccessHelper.GetResponseFromFrontApi(pageToken, FRONT_API_KEY);
+                        response = ApiAccessHelper.GetResponseFromFrontApi(pageToken);
                         count++;
                     }
                 }
@@ -875,7 +875,7 @@ namespace FrontPipedriveIntegrationProject
             {
                 var data = d.GetPostableData();
 
-                var oldData = ApiAccessHelper.GetResponseFromPipedriveApi("/deals/" + d.id, PD_API_KEY);
+                var oldData = ApiAccessHelper.GetResponseFromPipedriveApi("/deals/" + d.id);
 
                 Console.WriteLine("\n" + d.title);
                 Logger(LOG_FILE_NAME, "\n" + d.title + "\n----------------------");

@@ -36,11 +36,11 @@ namespace FrontPipedriveIntegrationProject
             this.createdAt = conv["created_at"];
             this.lastMessage = conv["last_message"]["created_at"];
 
-            var fullConversationData = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/conversations/{0}", id), ApiAccessHelper.FRONT_API_KEY);
+            var fullConversationData = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/conversations/{0}", id));
 
             this.listOfMessages = new List<dynamic>();
             // Returns an array of messages
-            var response = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/conversations/{0}/messages", id), ApiAccessHelper.FRONT_API_KEY)["_results"];
+            var response = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/conversations/{0}/messages", id))["_results"];
             foreach (var msg in response)
             {
                 this.listOfMessages.Add(msg);   // Convert to list
@@ -128,7 +128,7 @@ namespace FrontPipedriveIntegrationProject
             foreach (var emailId in setOfEmails)
             {
                 //get person ID from pipedrive using email id
-                var PdPersonAccounts = ApiAccessHelper.GetResponseFromPipedriveApi(String.Format("/persons/find?term={0}", emailId), ApiAccessHelper.PD_API_KEY, urlParameters: true);
+                var PdPersonAccounts = ApiAccessHelper.GetResponseFromPipedriveApi(String.Format("/persons/find?term={0}", emailId), urlParameters: true);
 
                 if (PdPersonAccounts != null)   // Handling the possibility that no PD account exists for the email ID
                 {
@@ -136,7 +136,7 @@ namespace FrontPipedriveIntegrationProject
                     {
                         var pid = person["id"];
                         //? Console.WriteLine("Person ID: " + pid);
-                        var allDealsForGivenPerson = ApiAccessHelper.GetResponseFromPipedriveApi(String.Format("/persons/{0}/deals", pid), ApiAccessHelper.PD_API_KEY);
+                        var allDealsForGivenPerson = ApiAccessHelper.GetResponseFromPipedriveApi(String.Format("/persons/{0}/deals", pid));
                         if (allDealsForGivenPerson != null)     // ensuring that the person actually has deals associated with his account
                         {
                             foreach (var deal in allDealsForGivenPerson)

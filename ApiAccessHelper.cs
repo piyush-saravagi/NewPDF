@@ -16,8 +16,8 @@ namespace FrontPipedriveIntegrationProject
 {
     public class ApiAccessHelper
     {
-        public const string PD_API_KEY = "0b9f8a7f360f41c3264ab14ed5d2a760ecaf39f3";
-        public const string FRONT_API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzY29wZXMiOlsic2hhcmVkOioiXSwiaWF0IjoxNTU2MzEzNjI3LCJpc3MiOiJmcm9udCIsInN1YiI6ImxlYW5zZXJ2ZXIiLCJqdGkiOiI5MDZkYTc3NjA2NWVkOTA5In0.b28IHdaeo0YXwq4dy-xEbzG54RkHnXcOwrbMpbJ5LyY";
+        public static string PD_API_KEY;
+        public static string FRONT_API_KEY;
 
         public static dynamic PostPipedriveJson(string relativeApiUrl, object data, string method = "POST")
         {
@@ -62,15 +62,15 @@ namespace FrontPipedriveIntegrationProject
             }
         }
 
-        public static dynamic GetResponseFromPipedriveApi(string relativeApiUrl, string apiKey, bool urlParameters = false)
+        public static dynamic GetResponseFromPipedriveApi(string relativeApiUrl, bool urlParameters = false)
         {
             {
                 // Retrieve the pipedrive deal info
                 HttpWebRequest rq;
                 if (!urlParameters)
-                    rq = (HttpWebRequest)WebRequest.Create(String.Format("https://api.pipedrive.com/v1{0}?api_token={1}", relativeApiUrl, apiKey));
+                    rq = (HttpWebRequest)WebRequest.Create(String.Format("https://api.pipedrive.com/v1{0}?api_token={1}", relativeApiUrl, PD_API_KEY));
                 else
-                    rq = (HttpWebRequest)WebRequest.Create(String.Format("https://api.pipedrive.com/v1{0}&api_token={1}", relativeApiUrl, apiKey));
+                    rq = (HttpWebRequest)WebRequest.Create(String.Format("https://api.pipedrive.com/v1{0}&api_token={1}", relativeApiUrl, PD_API_KEY));
 
                 using (var response = rq.GetResponse())
                 {
@@ -94,7 +94,7 @@ namespace FrontPipedriveIntegrationProject
             }
         }
 
-        public static dynamic GetResponseFromFrontApi(string relativeApiUrl, string apiKey)
+        public static dynamic GetResponseFromFrontApi(string relativeApiUrl)
         {
 
             //todo INTRODUCING DELAY to avoid rate limiting. Will fix by serialization(better, faster option) OR increasing rate limit
@@ -104,7 +104,7 @@ namespace FrontPipedriveIntegrationProject
             var myWebRequest = WebRequest.Create(myUri);
             var myHttpWebRequest = (HttpWebRequest)myWebRequest;
             myHttpWebRequest.PreAuthenticate = true;
-            myHttpWebRequest.Headers.Add("Authorization", "Bearer " + apiKey);
+            myHttpWebRequest.Headers.Add("Authorization", "Bearer " + FRONT_API_KEY);
             myHttpWebRequest.Accept = "application/json";
 
 
@@ -137,7 +137,7 @@ namespace FrontPipedriveIntegrationProject
                 //Console.WriteLine("Sleeping for " + (resetTimestamp - unixTimestamp));
                 Console.WriteLine("Sleeping for 4 seconds");
                 Thread.Sleep(4000);
-                return GetResponseFromFrontApi(relativeApiUrl, apiKey);
+                return GetResponseFromFrontApi(relativeApiUrl);
             }            
         }
     }
