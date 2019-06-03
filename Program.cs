@@ -10,14 +10,11 @@ using System.IO;
 using System.Web.Script.Serialization;
 using System.ComponentModel;
 
-//todo IMPROVE PROGRAM EFFICIENCY BY MERGING MAIL PROCESSING WITH PD PROCESSING 
+//todo IMPROVE RUNTIME EFFICIENCY BY MERGING MAIL PROCESSING WITH PD PROCESSING 
 namespace FrontPipedriveIntegrationProject
 {
     class Program
     {
-        //todo ##############################
-        //todo ====Count CE-DO as a PI ======
-        //todo ##############################
         //todo move to Helper class safely and then outside the source code
         public const Int32 DAYS_TO_SCAN = 10;
         public const string PD_API_KEY = "0b9f8a7f360f41c3264ab14ed5d2a760ecaf39f3";
@@ -25,24 +22,10 @@ namespace FrontPipedriveIntegrationProject
         ApiAccessHelper apiHelper = new ApiAccessHelper();
         static Dictionary<string, Conversation> listOfConversations = new Dictionary<string, Conversation>();
 
-
         static Int32 currTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
         static string LOG_FILE_NAME = currTimestamp.ToString() + ".txt";
-
-        //? ==========================================
-        //? ==========================================
-        //? ==========================================
-        //? ==========================================
-        //? ==========================================
-        //todo rename to timeStamp30daysAgo
-        static Int32 timeStampOneYearAgo = currTimestamp - DAYS_TO_SCAN * 86400;
-        //static Int32 timeStampOneYearAgo = currTimestamp - 30 * 86400;
-        //todo last 30 days, need to change to 30 days
-        //? ==========================================                                                                   
-        //? ==========================================
-        //? ==========================================
-        //? ==========================================
-        //? ==========================================
+        static Int32 timestamp30daysAgo = currTimestamp - DAYS_TO_SCAN * 86400;
+        
 
 
         static void Main(string[] args)
@@ -51,12 +34,8 @@ namespace FrontPipedriveIntegrationProject
             ScanFrontEmails();
             ProcessConversations(currTimestamp);
             Console.WriteLine("==============================");
-
-
-            //? ===============+++++++++++++++++++))))))))))))))))))&&&&&&&&&&&&&&&&&&%%%%%%%%%%%%%%%%%%************_)_________@@@@@@@@@@@@@
             updateDealFields();
-            //? ===============+++++++++++++++++++))))))))))))))))))&&&&&&&&&&&&&&&&&&%%%%%%%%%%%%%%%%%%************_)_________@@@@@@@@@@@@@
-
+            
             //todo ADD FUNCTIONALITY TO AUTOMATICALLY DELETE HISTORY EVERY YEAR OR ASK JILL TO DO THAT 
             //todo complete implementation of ---- ClearHistoryFields -----
 
@@ -328,16 +307,7 @@ namespace FrontPipedriveIntegrationProject
             if (!assignees.Contains("Jill")) assignees.Add("Jill");
             if (!assignees.Contains("Mike")) assignees.Add("Mike");
             if (!assignees.Contains("Piyush")) assignees.Add("Piyush");
-            ;
-
-            
-
-            //var piDoCountsForPiyush = from success in successfulResolvedCe.Concat(successfulResolvedOpportunity) group success by success.assignee;
-            //;
-
-            //foreach (var x in piDoCountsForPiyush) {
-            //    ;
-            //}
+           
 
             emailSender.AppendLineToEmailBody("Hey team,<p>Here is a summary of how we are performing with the opportunities we've had in the past " + DAYS_TO_SCAN +" days since " + TimestampToLocalTime(currTimestamp).ToString()+"<br>");
             var totalOp = successfulResolvedCe.Count + staleSuccessfulResolvedCe.Count + failedCe.Count + openUnresolvedCe.Count + staleUnresolvedCe.Count + successfulResolvedOpportunity.Count + staleSuccessfulResolvedOpportunities.Count + failedOpportunity.Count + openUnresolvedOpportunity.Count + staleUnresolvedOpportunity.Count;
@@ -570,9 +540,9 @@ namespace FrontPipedriveIntegrationProject
 
                         var latestEventDate = conversationEvents[0]["emitted_at"];
 
-                        //if (c.lastMessage < timeStampOneYearAgo)
+                        //if (c.lastMessage < timestamp30daysAgo)
                         //    return;
-                        if (latestEventDate < timeStampOneYearAgo)
+                        if (latestEventDate < timestamp30daysAgo)
                         {
                             //! IMPORTANT - Do not delete: Needed to break out of the outer loop as well
                             hasNextPage = false;
@@ -593,56 +563,8 @@ namespace FrontPipedriveIntegrationProject
                         response = ApiAccessHelper.GetResponseFromFrontApi(pageToken, FRONT_API_KEY);
                         count++;
                     }
-                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
-                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
-                    //break;
-                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-                    //? [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
-
                 }
-
             }
-
-
-
-
-            ; //? BREAKPOINT > PLEASE DELETE
-
-
-
-
-
-            /*
-            foreach (var tagEvent in tagEvents)
-            {
-                string tagEventId = tagEvent["id"];
-                string convId = tagEvent["conversation"]["id"];
-                Conversation c;
-
-                if (!listOfConversations.TryGetValue(convId, out c))
-                {
-                    //conversation not present in listOfConversations. Need to create and add a new one
-                    c = new Conversation(tagEvent["conversation"]);
-                    // Adding the conversation to our dictionary 
-                    listOfConversations.Add(c.id, c);
-                }
-
-                // Add tag details to the conversation
-                c.AddTagFromEvent(tagEvent);
-                Console.WriteLine("Scanned email thread: " + tagEvent["conversation"]["subject"]);
-            } */
-
-            //todo Get conversations CREATED in the last 30 days
-            //Console.WriteLine("");
         }
 
 
@@ -950,297 +872,17 @@ namespace FrontPipedriveIntegrationProject
         }
 
 
-        public static DateTime TimestampToLocalTime(decimal timestamp)
-        {
-            DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+        
 
-            // Add the timestamp (number of seconds since the Epoch) to be converted
-            dateTime = dateTime.AddSeconds((double)timestamp).ToLocalTime();
-            return dateTime;
-        }
-
-
-        /*! Delete this if the other function works well
-        private static dynamic ScanFrontEmailsAndUpdatePD()
-        {
-            Dictionary<Int32, Deal> dealsToUpdate = new Dictionary<Int32, Deal>();
-            Int32 currTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-
-            //0. PAGINATION
-
-            //1. Get deals tagged in the last 30 days
-            Int32 timeStamp30daysAgo = currTimestamp - 30 * 86400;
-            var taggedConversations = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/events?q[types][]=tag&q[after]={0}", timeStamp30daysAgo), FRONT_API_KEY);
-
-            //For each tag event, identify the date created, tag id, conv id and the email id associated with that conversation
-            foreach (var res in taggedConversations["_results"])
-            {
-
-                HashSet<string> emailIdsInConv = new HashSet<string>();
-
-                Tag convTag = new Tag(res);
-
-                Console.WriteLine("Tag created at: " + convTag.tagCreationDate);
-                Console.WriteLine("Tag id: " + convTag.tagId);
-                Console.WriteLine("Conversation id: " + convTag.convId);
-                Console.WriteLine("Conversation email: " + convTag.convEmail);
-
-
-                //Getting a list of messages in the conversation and storing the email ids 
-                var messagesInConv = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/conversations/{0}/messages", convTag.convId), FRONT_API_KEY)["_results"];
-                foreach (var message in messagesInConv)
-                {
-                    foreach (var recipient in message["recipients"])
-                    {
-                        if (!(recipient["handle"].Contains("leansentry.com") || recipient["handle"].Contains("leanserver.com") || recipient["handle"].Contains("pipedrivemail")))
-                        {
-                            //Filtered, deal specific email
-                            emailIdsInConv.Add(recipient["handle"]);
-                        }
-                    }
-                }
-                //Using the email ids to get the deals to be updated
-                foreach (var emailId in emailIdsInConv)
-                {
-                    //get person ID from pipedrive using email id
-                    var PdPersonAccounts = ApiAccessHelper.GetResponseFromPipedriveApi(String.Format("/persons/find?term={0}", emailId), PD_API_KEY, urlParameters: true);
-
-                    if (PdPersonAccounts != null)   // Handling the possibility that no PD account exists for the email ID
-                    {
-                        foreach (var person in PdPersonAccounts)    // Multiple persons possible with the same email
-                        {
-                            var pid = person["id"];
-                            Console.WriteLine("Person ID: " + pid);
-                            var allDealsForGivenPerson = ApiAccessHelper.GetResponseFromPipedriveApi(String.Format("/persons/{0}/deals", pid), PD_API_KEY);
-                            if (allDealsForGivenPerson != null)     // ensuring that the person actually has deals associated with his account
-                            {
-                                foreach (var deal in allDealsForGivenPerson)
-                                {
-                                    // Try getting the deal  from the local list
-                                    Deal tempDeal;
-                                    if (!dealsToUpdate.TryGetValue(deal["id"], out tempDeal))   // If deal object not present, create one
-                                    {
-                                        tempDeal = new Deal(deal);
-                                        dealsToUpdate.Add(deal["id"], tempDeal);
-                                    }
-                                    CalculateFieldValues(tempDeal, convTag);
-                                }
-                            }
-                        }
-                    }
-
-
-                    // get person ID from pipedrive using email id
-                    //var PdPersonAccount = GetResponseFromPipedriveApi(String.Format("/persons/find?term={0}", res["conversation"]["recipient"]["handle"]), PD_API_KEY, urlParameters: true);
-                    //foreach (var person in PdPersonAccount)
-                    //{
-                    //    var pid = person["id"];
-                    //    Console.WriteLine("Person ID: " + pid);
-                    //    UpdatePDFields(currTimestamp, res["emitted_at"], res["target"]["data"]["id"], pid, res["conversation"]["recipient"]["handle"]);
-                    //}
-
-                    // todo: Clear PD fields
-
-
-
-                    //4. Get email ID from conversation
-
-                    //6. get deals associated with that person
-
-                    // 7. update the field accordingly
-
-                    // 1. Get deals corresponding to each tag
-                    // var tagEvents = apiHelper.GetResponseFromFrontApi("/tags/tag_2zbt1/conversations", FRONT_API_KEY);
-
-
-                    //2. Clear all fields
-
-                    //3. Get tag added date
-
-                    //If within 30 days, 
-
-                    //3. Get email ID for each of these
-
-                    //4. Find out the person id on PD
-
-                    //5. Use person id to update field by 1
-
-
-                }
-                Console.WriteLine(string.Join("", emailIdsInConv));
-
-                //Console.WriteLine("Deals to be updated by this conversation:");
-                //foreach (Deal deal in dealsToUpdate.Values) {
-                //    Console.WriteLine(deal.title);
-                //}
-
-                Console.WriteLine("--------");
-            }
-            return null;
-        }
-        /*
-        //! Delete this after testing
-        private static void UpdateTEST()
-        {
-            var data = new Dictionary<string, string>();
-            data.Add("f7cf37886fc1fdf3a5acad99de357616f568b668", "04/05/2019");
-            ApiAccessHelper.PostPipedriveJson("/deals/1510", data, "PUT");
-        }
-
-
-        private static string TimestampToLocalTime(decimal timestamp)
-        {
-            System.DateTime dateTime = new System.DateTime(1970, 1, 1, 0, 0, 0, 0);
-
-            // Add the timestamp (number of seconds since the Epoch) to be converted
-            dateTime = dateTime.AddSeconds((double)timestamp).ToLocalTime();
-            return dateTime.ToString();
-        }
-
-        private static void CalculateFieldValues(Deal deal, Tag tag)
-        {
-
-            if (tag.readableTagName == "PI")
-            {
-                if (deal.lastPIDate == default(decimal) || deal.lastPIDate < tag.tagCreationDate)
-                {
-                    //update if value is null or PI date is later than current lastPIdate
-
-                    // todo stale PI need to be excluded
-                    deal.lastPIDate = tag.tagCreationDate;
-                    Console.WriteLine("PI tag was added to " + deal.title + "on " + TimestampToLocalTime(deal.lastPIDate));
-                    using (System.IO.StreamWriter file = new System.IO.StreamWriter("E:\\pi_data.txt", true))
-                    {
-                        file.WriteLine("PI tag was added to " + deal.title + "on " + TimestampToLocalTime(deal.lastPIDate));
-                    }
-                }
-            }
-            else if (tag.readableTagName == "CE")
-            {
-                // It could be an open CE, failed CE, successful CE or stale CE
-
-                // Getting all the tags for this particular conversation
-                var response = ApiAccessHelper.GetResponseFromFrontApi(String.Format("/conversations/{0}", tag.convId), FRONT_API_KEY);
-                List<string> listOfTagsInConv = new List<string>();
-
-
-                foreach (var t in response["tags"])
-                {
-                    listOfTagsInConv.Add(t["name"]);
-                }
-
-                foreach (var t in response["tags"])
-                {
-                    if (t["name"] == "fail")
-                    {
-                        // 1. Failed CE
-                    }
-                    else
-                    {
-
-                        // Checking if it is not stale
-                        //2. Successful CE
-
-                    }
-                }
-                // 1. Open CE: if no "CE DO" or "fail" tag and within 10 days of CE
-                Console.Write("");
-            }
-        }
-
-        /*
-        private static void UpdatePDFields(double currTimestamp, double tagTimestamp, string tagId, int personId, string email)
-        {
-
-            switch (tagId)
-            {
-                case "tag_2qf6t":
-                    Console.WriteLine("CE DETECTED for user " + email);
-                    break;
-                case "tag_2qf79":
-                    Console.WriteLine("CE DO DETECTED for user " + email);
-                    break;
-                case "tag_2zbt1":
-                    Console.WriteLine("PI DETECTED for user " + email);
-
-                    //last PI date field ID = 12628
-                    //last PI date field key = f7cf37886fc1fdf3a5acad99de357616f568b668
-
-                    //Get all deals for that user
-                    var allDealsForGivenPerson = GetResponseFromPipedriveApi(String.Format("/persons/{0}/deals", personId), PD_API_KEY);
-                    if (allDealsForGivenPerson != null)     // ensuring that the person actually has deals associated with his account
-                    {
-                        foreach (var deal in allDealsForGivenPerson)
-                        {
-
-                            //Todo: Need to check last PI date before updating
-
-
-                            //Update the last PI date for this deal
-                            var data = new Dictionary<string, string>();
-                            data.Add("f7cf37886fc1fdf3a5acad99de357616f568b668", TimestampToLocalTime(tagTimestamp));
-
-
-                            PostPipedriveJson(String.Format("/deals/{0}", deal["id"]), data, "PUT");
-                            Console.WriteLine("Updated last PI date field for deal [" + deal["title"] + "] with the value [" + TimestampToLocalTime(tagTimestamp) + "]");
-                        }
-                    }
-                    break;
-                case "tag_2zbsl":
-                    Console.WriteLine("FAIL DETECTED for user " + email);
-                    break;
-                case "tag_2zbs5":
-                    Console.WriteLine("CONTACT DETECTED for user " + email);
-                    break;
-
-                    //Could store in a dictionary before batch updating but would be too much hassle
-            }
-
-            Console.WriteLine("");
-        }
-        */
-
-        //! UPDATES ALL FIELD FOR THE PD DEAL
-
+        
+        //! Updates the PD fields for all deals
         public static void updateDealFields()
         {
             // Multiple conversations could bring up the same deals again and again
             // Making sure they are updated just once
-            //? ===============================================================
-            //? ===============================================================
-            //? ===============================================================
-            //? ===============================================================
-            //? ===============================================================
-            //? MAKE SURE THERE IS ONLY ONE DEAL ACROSS MULTIPLE CONVERSATIONS
-            //? ===============================================================
-            //? ===============================================================
-            //? ===============================================================
-            //? ===============================================================
-            //? ===============================================================
-            //? ===============================================================
-
-
+           
             foreach (Deal d in Conversation.listOfAllDeals.Values)
             {
-
-                //? DELETE BLOCK OF CODE BELOW
-                //if (d.lastPiDate != default(decimal))
-                //{
-                //    Console.WriteLine("FOUND A NEW PI FOR " + d.title);
-                //    //Updating field
-                //    ;
-                //    UpdateField(deal: d, fieldId: LAST_PI_DATE_FIELD, value: TimestampToLocalTime(d.lastPiDate).ToString());
-                //    UpdateField(d, PI_HISTORY_FIELD, String.Join(" ", d.piHistoryStringArray));
-
-                //}
-                //if (d.lastCeDoDate != default(decimal))
-                //{
-                //    Console.WriteLine("FOUND A NEW CE_DO FOR " + d.title);
-                //    //Console.WriteLine(c.subject);
-                //    ;
-                //}
-                //? delete till here
-
                 var data = d.GetPostableData();
 
                 var oldData = ApiAccessHelper.GetResponseFromPipedriveApi("/deals/" + d.id, PD_API_KEY);
@@ -1257,41 +899,30 @@ namespace FrontPipedriveIntegrationProject
                     Logger(LOG_FILE_NAME, String.Format("{0,-40}\t{1,-30}\t=>\t{2,15}", Deal.pdFieldNames[dataElement.Key], oldValue, dataElement.Value));
                 }
                 ApiAccessHelper.PostPipedriveJson("/deals/" + d.id, data, "PUT");
-                ;
             }
-
-
-
-
-
-            //todo Delete the commented code below
-            //foreach (Conversation c in listOfConversations.Values) {
-            //    foreach (Deal d in c.PDDealsAffectedByConversation.Values) {
-            //        if (d.lastPiDate != default(decimal)) {
-            //            Console.WriteLine("FOUND A NEW PI FOR "+d.title);
-            //            Console.WriteLine(c.subject);
-            //            ;
-            //        }if (d.lastCeDoDate != default(decimal)) {
-            //            Console.WriteLine("FOUND A NEW CE_DO FOR "+ d.title);
-            //            Console.WriteLine(c.subject);
-            //            ;
-            //        }
-            //    }
-            //  }
         }
 
 
         //? todo delete if no references 
-        static void UpdateField(Deal deal, string fieldId, string value)
+        //static void UpdateField(Deal deal, string fieldId, string value)
+        //{
+        //    var data = new Dictionary<string, string>();
+        //    data.Add(fieldId, value.ToString());
+
+        //    ;
+        //    ApiAccessHelper.PostPipedriveJson("/deals/" + deal.id, data, "PUT");
+        //    ;
+        //}
+
+
+        public static DateTime TimestampToLocalTime(decimal timestamp)
         {
-            var data = new Dictionary<string, string>();
-            data.Add(fieldId, value.ToString());
+            DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0);
 
-            ;
-            ApiAccessHelper.PostPipedriveJson("/deals/" + deal.id, data, "PUT");
-            ;
+            // Add the timestamp (number of seconds since the Epoch) to be converted
+            dateTime = dateTime.AddSeconds((double)timestamp).ToLocalTime();
+            return dateTime;
         }
-
 
         public static void Logger(string filename, string lines)
         {
