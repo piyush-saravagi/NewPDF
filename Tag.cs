@@ -17,8 +17,12 @@ namespace FrontPipedriveIntegrationProject
      */
     class Tag
     {
-        
 
+        public static readonly string CE_TAG_ID = "tag_2qf6t";
+        public static readonly string CE_DO_TAG_ID = "tag_2qf79";
+        public static readonly string PI_TAG_ID = "tag_2zbt1";
+        public static readonly string FAIL_TAG_ID = "tag_2zbsl";
+        public static readonly string BILLING_TAG_ID = "tag_36oud";
 
         public decimal tagCreationDate;
         public string tagId;

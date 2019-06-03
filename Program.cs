@@ -16,7 +16,7 @@ namespace FrontPipedriveIntegrationProject
     class Program
     {
         //todo move to Helper class safely and then outside the source code
-        public const Int32 DAYS_TO_SCAN = 10;
+        public const Int32 DAYS_TO_SCAN =  30;
         public const string PD_API_KEY = "0b9f8a7f360f41c3264ab14ed5d2a760ecaf39f3";
         public const string FRONT_API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzY29wZXMiOlsic2hhcmVkOioiXSwiaWF0IjoxNTU2MzEzNjI3LCJpc3MiOiJmcm9udCIsInN1YiI6ImxlYW5zZXJ2ZXIiLCJqdGkiOiI5MDZkYTc3NjA2NWVkOTA5In0.b28IHdaeo0YXwq4dy-xEbzG54RkHnXcOwrbMpbJ5LyY";
         ApiAccessHelper apiHelper = new ApiAccessHelper();
@@ -26,7 +26,6 @@ namespace FrontPipedriveIntegrationProject
         static string LOG_FILE_NAME = currTimestamp.ToString() + ".txt";
         static Int32 timestamp30daysAgo = currTimestamp - DAYS_TO_SCAN * 86400;
         
-
 
         static void Main(string[] args)
         {
@@ -40,7 +39,7 @@ namespace FrontPipedriveIntegrationProject
             //todo complete implementation of ---- ClearHistoryFields -----
 
             //Passing command line argument "send-email" sends out an email to the team inbox
-            if (args.Length != 0 && args[0] == "send-email")
+            if (args.Length != 0 && args.Contains("send-email"))
             {
                 EmailSender emailSender = new EmailSender();
                 emailSender.mail.Subject += (TimestampToLocalTime(currTimestamp).ToString(" MM/dd"));
@@ -52,11 +51,7 @@ namespace FrontPipedriveIntegrationProject
 
 
         private static void appendConversationsByAssigneeToEmailBody(EmailSender emailSender, string assignee, dynamic allConvByState) {
-            string CE_TAG_ID = "tag_2qf6t";
-            string CE_DO_TAG_ID = "tag_2qf79";
-            string PI_TAG_ID = "tag_2zbt1";
-            string FAIL_TAG_ID = "tag_2zbsl";
-            string BILLING_TAG_ID = "tag_36oud";
+            
 
             int totalPisForAssignee = 0;
             foreach (Conversation c in allConvByState["successfulResolvedOpportunity"]) {
@@ -102,7 +97,7 @@ namespace FrontPipedriveIntegrationProject
                     if (c.PDDealsAffectedByConversation.Count != 0)
                     {
                         string link = @"https://app.frontapp.com/open/" + c.id;
-                        Tag ceTag = c.dictOfTags[CE_TAG_ID];
+                        Tag ceTag = c.dictOfTags[Tag.CE_TAG_ID];
                         Int32 daysOpen = (Int32)(currTimestamp - ceTag.tagCreationDate)/86400; //converting seconds to days
                         emailSender.AppendLineToEmailBody(String.Format(counter+++". <a href={0}></b>COMPELLING EVENT: {1}</b></a> | Open CE since {2} ({3} days | {4})", link, c.subject, TimestampToLocalTime(ceTag.tagCreationDate).ToString("MM-dd-yyyy"), daysOpen, c.primaryEmail));
                         
@@ -114,7 +109,7 @@ namespace FrontPipedriveIntegrationProject
                     if (c.PDDealsAffectedByConversation.Count != 0)
                     {
                         string link = @"https://app.frontapp.com/open/" + c.id;
-                        Tag ceTag = c.dictOfTags[CE_TAG_ID];
+                        Tag ceTag = c.dictOfTags[Tag.CE_TAG_ID];
                         Int32 daysOpen = (Int32)(currTimestamp - ceTag.tagCreationDate) / 86400; //converting seconds to days
                         emailSender.AppendLineToEmailBody(String.Format(counter++ + ". <b><a href={0}><font color=red>COMPELLING EVENT: {1}</font></a></b> | Open CE since {2} ({3} days) | {4}", link, c.subject, TimestampToLocalTime(ceTag.tagCreationDate).ToString("MM-dd-yyyy"), daysOpen, c.primaryEmail));
                         
@@ -162,29 +157,24 @@ namespace FrontPipedriveIntegrationProject
             List<Conversation> staleUnresolvedOpportunity = new List<Conversation>();
 
             Dictionary<string, List<Conversation>> allConvByState = new Dictionary<string, List<Conversation>>();
-
-            string CE_TAG_ID = "tag_2qf6t";
-            string CE_DO_TAG_ID = "tag_2qf79";
-            string PI_TAG_ID = "tag_2zbt1";
-            string FAIL_TAG_ID = "tag_2zbsl";
-            string BILLING_TAG_ID = "tag_36oud";
+            
 
             // Categorizing deals into their states
             foreach (Conversation conversation in listOfConversations.Values) {
-                if (conversation.dictOfTags.ContainsKey(BILLING_TAG_ID)) {
+                if (conversation.dictOfTags.ContainsKey(Tag.BILLING_TAG_ID)) {
                     billing.Add(conversation);
                     continue;
                 }
 
-                if (conversation.dictOfTags.ContainsKey(CE_TAG_ID))
+                if (conversation.dictOfTags.ContainsKey(Tag.CE_TAG_ID))
                 {
                     // CE opportunity
-                    Tag ce = conversation.dictOfTags[CE_TAG_ID];
+                    Tag ce = conversation.dictOfTags[Tag.CE_TAG_ID];
                     
-                    if (conversation.dictOfTags.ContainsKey(CE_DO_TAG_ID))
+                    if (conversation.dictOfTags.ContainsKey(Tag.CE_DO_TAG_ID))
                     {
 
-                        Tag ce_do = conversation.dictOfTags[CE_DO_TAG_ID];
+                        Tag ce_do = conversation.dictOfTags[Tag.CE_DO_TAG_ID];
                         if (ce_do.tagCreationDate - ce.tagCreationDate < conversation.CEOpenWindowDays * 86400)
                         {
                             //! SUCCESSFUL RESOLVED CE 
@@ -201,7 +191,7 @@ namespace FrontPipedriveIntegrationProject
                                 staleSuccessfulResolvedCe.Add(conversation);
                         }
                     }
-                    else if (conversation.dictOfTags.ContainsKey(FAIL_TAG_ID))
+                    else if (conversation.dictOfTags.ContainsKey(Tag.FAIL_TAG_ID))
                     {
                         //! FAILED RESOLVED CE
                         //! CONTAINS CE TAG AND FAIL TAG
@@ -233,9 +223,9 @@ namespace FrontPipedriveIntegrationProject
                 else
                 {
                     // Non CE opportunity
-                    if (conversation.dictOfTags.ContainsKey(PI_TAG_ID))
+                    if (conversation.dictOfTags.ContainsKey(Tag.PI_TAG_ID))
                     {
-                        Tag pi = conversation.dictOfTags[PI_TAG_ID];
+                        Tag pi = conversation.dictOfTags[Tag.PI_TAG_ID];
                         if (pi.tagCreationDate - conversation.createdAt < conversation.OpportunityOpenWindowDays * 86400)
                         {
                             //! SUCCESSFUL RESOLVED OPPORTUNITY
@@ -253,7 +243,7 @@ namespace FrontPipedriveIntegrationProject
                                 staleSuccessfulResolvedOpportunities.Add(conversation);
                         }
                     }
-                    else if (conversation.dictOfTags.ContainsKey(FAIL_TAG_ID))
+                    else if (conversation.dictOfTags.ContainsKey(Tag.FAIL_TAG_ID))
                     {
                         //! FAILED OPPORTUNITY
                         //! CONTAINS A FAIL TAG, BUT NO CE
