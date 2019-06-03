@@ -46,34 +46,9 @@ namespace FrontPipedriveIntegrationProject
                 this.listOfMessages.Add(msg);   // Convert to list
             }
 
-            //! STEP TAKEN TO REDUCE SCOPE. ASSUMING THAT EMAIL ID IS LINKED TO A DEAL
-            //! UNCOMMENT NEXT LINE AND COMMENT THE LINE AFTER THAT TO INcLUDED ALL EMAIL IDS FROM ALL MESSAGES. BUT THIS WILL INCUR HEAVY API USAGE
             this.setOfEmails = GetEmailsFromMessageList(listOfMessages);
-            //this.setOfEmails.Add(primaryEmail);
-
 
             this.PDDealsAffectedByConversation = GetListOfDealsToBeUpdated(setOfEmails);
-
-
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-            //todo  FIX TAGS VALUES
-
 
             foreach (var e in events)
             {
@@ -85,40 +60,10 @@ namespace FrontPipedriveIntegrationProject
                         t = new Tag(e);
                         //Add the tag to the list
                         dictOfTags.Add(t.tagId, t);
-                        ; //? BREAKPOINT> PLEASE REMOVE                                    
+                                         
                     }
                 }
             }
-
-
-
-            //? WILL BE REMOVED IF THE ABOVE LOOP IS FIXED
-            /*
-            if (fullConversationData["tags"].Length != 0)
-            {
-                foreach (var tag in fullConversationData["tags"])
-                {
-                    //Create a new tag if it does not exists
-                    Tag t;
-                    if (!dictOfTags.TryGetValue(tag["id"], out t))
-                    {
-                        t = new Tag(tag);
-                        //Add the tag to the list
-                        dictOfTags.Add(t.tagId, t);
-                        ; //? BREAKPOINT> PLEASE REMOVE                                    
-                    }
-
-                }
-
-
-            }
-            */
-            //Adding the tags to the fields
-            //foreach(var tag in fullConversationData["tags"]){
-            //    if (tag != null && dictOfTags.ContainsKey(tag[""])) { //not empty tag list
-
-            //    }
-            //}
         }
 
         private Dictionary<string, Deal> GetListOfDealsToBeUpdated(HashSet<string> setOfEmails)
@@ -135,28 +80,27 @@ namespace FrontPipedriveIntegrationProject
                     foreach (var person in PdPersonAccounts)    // Multiple persons possible with the same email
                     {
                         var pid = person["id"];
-                        //? Console.WriteLine("Person ID: " + pid);
                         var allDealsForGivenPerson = ApiAccessHelper.GetResponseFromPipedriveApi(String.Format("/persons/{0}/deals", pid));
                         if (allDealsForGivenPerson != null)     // ensuring that the person actually has deals associated with his account
                         {
                             foreach (var deal in allDealsForGivenPerson)
                             {
-
-                                //todo need to filter to OPEN deals
                                 // Try getting the deal  from the local list
                                 Deal tempDeal;
 
-                                //? =======================================================================================================
-                                //? NEED TO UPDATE SO THAT ONLY DEALS THAT HAVE NOT BEEN CONSIDERED YET ARE CREATED, ELSE SHARE THE OBJECT
-                                //? =======================================================================================================
+                                if (!deal["active"])
+                                {
+                                    // Deal closed (won or lost), should not be updated by this run 
+                                    continue;
+                                }
+
                                 if (!dealsToUpdate.ContainsKey(deal["id"].ToString()))
                                 { // Deal object not present inside dealsToUpdate, but could be present inside AllDeals
 
                                     if (listOfAllDeals.ContainsKey(deal["id"].ToString()))
                                     {
                                         //We already have a deal inside allDeals. No need to create a new one. Just link the deal to dealsToUpdate
-                                        //? REMOVE DEBUGGING LINE BELOW
-                                        Console.WriteLine("Deal already created by diff conversation");
+                                       
                                         tempDeal = listOfAllDeals[deal["id"] + ""];
                                     }
                                     else
