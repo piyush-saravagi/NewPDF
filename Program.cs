@@ -32,7 +32,7 @@ namespace FrontPipedriveIntegrationProject
             ScanFrontEmails();
             ProcessConversations(currTimestamp);
             Console.WriteLine("==============================");
-            //updateDealFields();
+            updateDealFields();
             
             //todo call clear history once every new year
 
