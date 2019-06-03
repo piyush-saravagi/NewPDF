@@ -11,7 +11,7 @@ namespace FrontPipedriveIntegrationProject
     class EmailSender
     {
         SmtpClient smtpServer;
-        MailMessage mail;
+        public MailMessage mail;
         string body;
 
         public EmailSender() {

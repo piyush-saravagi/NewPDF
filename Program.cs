@@ -10,27 +10,11 @@ using System.IO;
 using System.Web.Script.Serialization;
 using System.ComponentModel;
 
+//todo IMPROVE PROGRAM EFFICIENCY BY MERGING MAIL PROCESSING WITH PD PROCESSING 
 namespace FrontPipedriveIntegrationProject
 {
     class Program
     {
-
-
-        //? ===============================================================
-        //? ===============================================================
-        //? ===============================================================
-        //? ===============================================================
-        //? ===============================================================
-        //todo MAKE SURE THERE IS ONLY ONE DEAL ACROSS MULTIPLE CONVERSATIONS
-        //? ===============================================================
-        //? ===============================================================
-        //? ===============================================================
-        //? ===============================================================
-        //? ===============================================================
-        //? ===============================================================
-
-
-
         //todo ##############################
         //todo ====Count CE-DO as a PI ======
         //todo ##############################
@@ -63,23 +47,27 @@ namespace FrontPipedriveIntegrationProject
 
         static void Main(string[] args)
         {
-            EmailSender emailSender = new EmailSender();
-
-
+           
             ScanFrontEmails();
             ProcessConversations(currTimestamp);
             Console.WriteLine("==============================");
 
 
             //? ===============+++++++++++++++++++))))))))))))))))))&&&&&&&&&&&&&&&&&&%%%%%%%%%%%%%%%%%%************_)_________@@@@@@@@@@@@@
-            //updateDealFields();
+            updateDealFields();
             //? ===============+++++++++++++++++++))))))))))))))))))&&&&&&&&&&&&&&&&&&%%%%%%%%%%%%%%%%%%************_)_________@@@@@@@@@@@@@
 
             //todo ADD FUNCTIONALITY TO AUTOMATICALLY DELETE HISTORY EVERY YEAR OR ASK JILL TO DO THAT 
             //todo complete implementation of ---- ClearHistoryFields -----
 
-            generateEmailBody(emailSender);
-            emailSender.SendMessage();
+            //Passing command line argument "send-email" sends out an email to the team inbox
+            if (args.Length != 0 && args[0] == "send-email")
+            {
+                EmailSender emailSender = new EmailSender();
+                emailSender.mail.Subject += (TimestampToLocalTime(currTimestamp).ToString(" MM/dd"));
+                generateEmailBody(emailSender);
+                emailSender.SendMessage();
+            }
             Console.ReadKey();
         }
 
@@ -89,6 +77,7 @@ namespace FrontPipedriveIntegrationProject
             string CE_DO_TAG_ID = "tag_2qf79";
             string PI_TAG_ID = "tag_2zbt1";
             string FAIL_TAG_ID = "tag_2zbsl";
+            string BILLING_TAG_ID = "tag_36oud";
 
             int totalPisForAssignee = 0;
             foreach (Conversation c in allConvByState["successfulResolvedOpportunity"]) {
@@ -179,6 +168,7 @@ namespace FrontPipedriveIntegrationProject
         private static void generateEmailBody(EmailSender emailSender)
         {
             // Better option would have been to use hashsets, but to keep things simple, using lists
+            List<Conversation> billing = new List<Conversation>();
 
             List<Conversation> successfulResolvedCe = new List<Conversation>();
             List<Conversation> staleSuccessfulResolvedCe = new List<Conversation>();
@@ -198,9 +188,15 @@ namespace FrontPipedriveIntegrationProject
             string CE_DO_TAG_ID = "tag_2qf79";
             string PI_TAG_ID = "tag_2zbt1";
             string FAIL_TAG_ID = "tag_2zbsl";
+            string BILLING_TAG_ID = "tag_36oud";
 
             // Categorizing deals into their states
             foreach (Conversation conversation in listOfConversations.Values) {
+                if (conversation.dictOfTags.ContainsKey(BILLING_TAG_ID)) {
+                    billing.Add(conversation);
+                    continue;
+                }
+
                 if (conversation.dictOfTags.ContainsKey(CE_TAG_ID))
                 {
                     // CE opportunity
@@ -343,7 +339,7 @@ namespace FrontPipedriveIntegrationProject
             //    ;
             //}
 
-            emailSender.AppendLineToEmailBody("Hey team,<p>Here is a summary of how we are performing with the opportunities we've had in the past" + DAYS_TO_SCAN +" days<br>");
+            emailSender.AppendLineToEmailBody("Hey team,<p>Here is a summary of how we are performing with the opportunities we've had in the past " + DAYS_TO_SCAN +" days since " + TimestampToLocalTime(currTimestamp).ToString()+"<br>");
             var totalOp = successfulResolvedCe.Count + staleSuccessfulResolvedCe.Count + failedCe.Count + openUnresolvedCe.Count + staleUnresolvedCe.Count + successfulResolvedOpportunity.Count + staleSuccessfulResolvedOpportunities.Count + failedOpportunity.Count + openUnresolvedOpportunity.Count + staleUnresolvedOpportunity.Count;
 
             emailSender.AppendLineToEmailBody(String.Format(@"<ul><li><b>Total opportunities (CE + Non CE):</b> {0}</li><li><b>Unresolved CEs:</b> {1} stale and {2} not stale</li><li><b>Unresolved Opportunities (Non-CE):</b> {3} stale and {4} not stale</li><li><b>Recent:</b> {5} CE-DOs and {6} PIs</li></ul>", totalOp, staleUnresolvedCe.Count, openUnresolvedCe.Count, staleUnresolvedOpportunity.Count, openUnresolvedOpportunity.Count, successfulResolvedCe.Count, successfulResolvedOpportunity.Count));
@@ -458,6 +454,17 @@ namespace FrontPipedriveIntegrationProject
             emailSender.AppendLineToEmailBody("Unresolved opportunities that have gone stale - Immediate action needed");
             emailSender.AppendLineToEmailBody("---------------------------------------------");
             foreach (Conversation c in staleUnresolvedOpportunity)
+            {
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                    emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id + ")");
+                }
+            }
+            emailSender.AppendLineToEmailBody("");
+
+            emailSender.AppendLineToEmailBody("Billing - did not affect our states");
+            emailSender.AppendLineToEmailBody("---------------------------------------------");
+            foreach (Conversation c in billing)
             {
                 if (c.PDDealsAffectedByConversation.Count != 0)
                 {
@@ -646,6 +653,9 @@ namespace FrontPipedriveIntegrationProject
             string CE_DO_TAG_ID = "tag_2qf79";
             string PI_TAG_ID = "tag_2zbt1";
             string FAIL_TAG_ID = "tag_2zbsl";
+            string BILLING_TAG_ID = "tag_36oud";
+
+
 
             string logReason;
 
@@ -660,6 +670,13 @@ namespace FrontPipedriveIntegrationProject
                 
                 var linqQuery = from deal in conversation.PDDealsAffectedByConversation.Values select deal.title;
                 Logger(LOG_FILE_NAME, String.Format("Pipedrive deals affected: {0}", String.Join(", ", linqQuery)));
+
+                //todo: implement logic for billing tag and also implement that in the emailsender
+                if (conversation.dictOfTags.ContainsKey(BILLING_TAG_ID)) {
+                    //billing - not considered an opportunity
+                    Logger(LOG_FILE_NAME, "Billing tag - not processing this conversation any further");
+                    continue;
+                }
 
                 // Every conversation is an opportunity
                 foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
