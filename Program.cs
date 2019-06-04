@@ -15,33 +15,33 @@ namespace FrontPipedriveIntegrationProject
 {
     class Program
     {
-        public const Int32 DAYS_TO_SCAN =  1;
+        public const Int32 DAYS_TO_SCAN =  30;
         static Dictionary<string, Conversation> listOfConversations = new Dictionary<string, Conversation>();
-
-        static readonly string LOG_FILE_NAME = currTimestamp.ToString() + ".txt";
-
+        
         static Int32 currTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
         static readonly Int32 timestamp30daysAgo = currTimestamp - DAYS_TO_SCAN * 86400;
-        
+
+        static readonly string LOG_FILE_NAME = @"C:\Users\psaravagi\Desktop\NewPDF\bin\Debug\" + currTimestamp.ToString() + ".txt";
 
         static void Main(string[] args)
         {
             ApiAccessHelper.PD_API_KEY = "0b9f8a7f360f41c3264ab14ed5d2a760ecaf39f3";
             ApiAccessHelper.FRONT_API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzY29wZXMiOlsic2hhcmVkOioiXSwiaWF0IjoxNTU2MzEzNjI3LCJpc3MiOiJmcm9udCIsInN1YiI6ImxlYW5zZXJ2ZXIiLCJqdGkiOiI5MDZkYTc3NjA2NWVkOTA5In0.b28IHdaeo0YXwq4dy-xEbzG54RkHnXcOwrbMpbJ5LyY";
-           
+
             ScanFrontEmails();
             ProcessConversations(currTimestamp);
             Console.WriteLine("==============================");
-            updateDealFields();
-            
-            //todo call clear history once every new year
+            //UpdateDealFields();
+
+            //todo call ClearHistoryFields() once every new year
 
             //Passing command line argument "send-email" sends out an email to the team inbox
             if (args.Length != 0 && args.Contains("send-email"))
             {
                 EmailSender emailSender = new EmailSender();
+                emailSender.mail.Subject = "TEST - PIYUSH. Please delete";
                 emailSender.mail.Subject += (TimestampToLocalTime(currTimestamp).ToString(" MM/dd"));
-                generateEmailBody(emailSender);
+                GenerateEmailBody(emailSender);
                 emailSender.SendMessage();
             }
             Console.ReadKey();
@@ -87,8 +87,7 @@ namespace FrontPipedriveIntegrationProject
                         var conversationEvents = ApiAccessHelper.GetResponseFromFrontApi(eventsRelativeUrl)["_results"];
 
 
-                        Conversation c;
-                        if (!listOfConversations.TryGetValue(convId, out c))
+                        if (!listOfConversations.TryGetValue(convId, out Conversation c))
                         {
 
                             //conversation not present in listOfConversations. Need to create and add a new one
@@ -422,7 +421,7 @@ namespace FrontPipedriveIntegrationProject
 
         
         //! Updates the PD fields for all deals
-        public static void updateDealFields()
+        public static void UpdateDealFields()
         {
             // Multiple conversations could bring up the same deals again and again
             // Making sure they are updated just once
@@ -450,7 +449,7 @@ namespace FrontPipedriveIntegrationProject
         
 
 
-        private static void appendConversationsByAssigneeToEmailBody(EmailSender emailSender, string assignee, dynamic allConvByState) {
+        private static void AppendConversationsByAssigneeToEmailBody(EmailSender emailSender, string assignee, dynamic allConvByState) {
             
 
             int totalPisForAssignee = 0;
@@ -515,16 +514,6 @@ namespace FrontPipedriveIntegrationProject
                         
                     }
             }
-            foreach (Conversation c in allConvByState["openUnresolvedOpportunity"])
-            {
-                if (c.assignee == assignee)
-                    if (c.PDDealsAffectedByConversation.Count != 0)
-                    {
-                        string link = @"https://app.frontapp.com/open/" + c.id;
-                        Int32 daysOpen = (Int32)(currTimestamp - c.createdAt) / 86400; //converting seconds to days
-                        emailSender.AppendLineToEmailBody(String.Format(counter++ + ". <a href={0}>{1}</a> | Open since {2} ({3} days) | {4}", link, c.subject, TimestampToLocalTime(c.createdAt).ToString("MM-dd-yyyy"), daysOpen, c.primaryEmail));
-                    }
-            }
             foreach (Conversation c in allConvByState["staleUnresolvedOpportunity"])
             {
                 if (c.assignee == assignee)
@@ -535,11 +524,21 @@ namespace FrontPipedriveIntegrationProject
                         emailSender.AppendLineToEmailBody(String.Format(counter++ + ". <a href={0}><font color=red>{1}</font></a> | Open  since {2} ({3} days) | {4}", link, c.subject, TimestampToLocalTime(c.createdAt).ToString("MM-dd-yyyy"), daysOpen, c.primaryEmail));
                     }
             }
+            foreach (Conversation c in allConvByState["openUnresolvedOpportunity"])
+            {
+                if (c.assignee == assignee)
+                    if (c.PDDealsAffectedByConversation.Count != 0)
+                    {
+                        string link = @"https://app.frontapp.com/open/" + c.id;
+                        Int32 daysOpen = (Int32)(currTimestamp - c.createdAt) / 86400; //converting seconds to days
+                        emailSender.AppendLineToEmailBody(String.Format(counter++ + ". <a href={0}>{1}</a> | Open since {2} ({3} days) | {4}", link, c.subject, TimestampToLocalTime(c.createdAt).ToString("MM-dd-yyyy"), daysOpen, c.primaryEmail));
+                    }
+            }
             emailSender.AppendLineToEmailBody("");
         }
 
 
-        private static void generateEmailBody(EmailSender emailSender)
+        private static void GenerateEmailBody(EmailSender emailSender)
         {
             // Better option would have been to use hashsets, but to keep things simple, using lists
             List<Conversation> billing = new List<Conversation>();
@@ -708,7 +707,7 @@ namespace FrontPipedriveIntegrationProject
 
             foreach (var a in assignees)
             {
-                appendConversationsByAssigneeToEmailBody(emailSender, a, allConvByState);
+                AppendConversationsByAssigneeToEmailBody(emailSender, a, allConvByState);
             }
             
 
@@ -766,7 +765,7 @@ namespace FrontPipedriveIntegrationProject
             emailSender.AppendLineToEmailBody("");
 
             //====
-            emailSender.AppendLineToEmailBody("PIs ON TIME. Good job on these!");
+            emailSender.AppendLineToEmailBody("PI's ON TIME. Good job on these!");
             emailSender.AppendLineToEmailBody("---------------------------------------------");
             foreach (Conversation c in successfulResolvedOpportunity)
             {
@@ -857,11 +856,13 @@ namespace FrontPipedriveIntegrationProject
             var allDeals = ApiAccessHelper.GetResponseFromPipedriveApi("/deals");
             foreach (var d in allDeals)
             {
-                Dictionary<string, string> data = new Dictionary<string, string>();
-                data.Add(Deal.pdFieldKeys["PI_HISTORY_FIELD"], "0 0 0 0 0 0 0 0 0 0 0 0");
-                data.Add(Deal.pdFieldKeys["CONTACT_HISTORY_FIELD"], "0 0 0 0 0 0 0 0 0 0 0 0");
-                data.Add(Deal.pdFieldKeys["CE_HISTORY_FIELD"], "0 0 0 0 0 0 0 0 0 0 0 0");
-                data.Add(Deal.pdFieldKeys["CE_DO_HISTORY_FIELD"], "0 0 0 0 0 0 0 0 0 0 0 0");
+                Dictionary<string, string> data = new Dictionary<string, string>
+                {
+                    { Deal.pdFieldKeys["PI_HISTORY_FIELD"], "0 0 0 0 0 0 0 0 0 0 0 0" },
+                    { Deal.pdFieldKeys["CONTACT_HISTORY_FIELD"], "0 0 0 0 0 0 0 0 0 0 0 0" },
+                    { Deal.pdFieldKeys["CE_HISTORY_FIELD"], "0 0 0 0 0 0 0 0 0 0 0 0" },
+                    { Deal.pdFieldKeys["CE_DO_HISTORY_FIELD"], "0 0 0 0 0 0 0 0 0 0 0 0" }
+                };
                 ApiAccessHelper.PostPipedriveJson("/deals/" + d["id"], data, "PUT");
             }
         }

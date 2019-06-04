@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net;
@@ -128,7 +126,7 @@ namespace FrontPipedriveIntegrationProject
                 myWebResponse.Close();
                 return json;
             }
-            catch (WebException e) {
+            catch (WebException) {
                 ;
                 //decimal resetTimestamp = Convert.ToDecimal(e.Response.Headers.Get("X-RateLimit-Reset"));
                 //decimal unixTimestamp = (decimal)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
