@@ -7,16 +7,15 @@ using System.Net.Mail;
 
 namespace FrontPipedriveIntegrationProject
 {
-    //todo CONVERT BODY TO STRING BUILDER
     class EmailSender
     {
         SmtpClient smtpServer;
         public MailMessage mail;
-        string body;
+        StringBuilder body;
 
         public EmailSender() {
             mail = new MailMessage();
-            body = "";
+            body = new StringBuilder("");
             smtpServer = new SmtpClient("smtp.gmail.com");
 
             mail.From = new MailAddress("emailsender1995@gmail.com");
@@ -35,7 +34,7 @@ namespace FrontPipedriveIntegrationProject
         {
             try
             {
-                mail.Body = body;
+                mail.Body = body.ToString();
                 smtpServer.Send(mail);
                 Console.WriteLine("mail Sent");
             }
@@ -47,7 +46,7 @@ namespace FrontPipedriveIntegrationProject
 
         public void AppendLineToEmailBody(string line)
         {
-            body = body + line + "<br>";
+            body.Append(line).Append("<br>");
         }
     }
 }

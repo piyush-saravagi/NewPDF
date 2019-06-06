@@ -31,7 +31,7 @@ namespace FrontPipedriveIntegrationProject
             ScanFrontEmails();
             ProcessConversations(currTimestamp);
             Console.WriteLine("==============================");
-            //UpdateDealFields();
+            UpdateDealFields();
 
             //todo call ClearHistoryFields() once every new year
 
@@ -39,7 +39,6 @@ namespace FrontPipedriveIntegrationProject
             if (args.Length != 0 && args.Contains("send-email"))
             {
                 EmailSender emailSender = new EmailSender();
-                emailSender.mail.Subject = "TEST - PIYUSH. Please delete";
                 emailSender.mail.Subject += (TimestampToLocalTime(currTimestamp).ToString(" MM/dd"));
                 GenerateEmailBody(emailSender);
                 emailSender.SendMessage();
@@ -145,7 +144,7 @@ namespace FrontPipedriveIntegrationProject
                 var linqQuery = from deal in conversation.PDDealsAffectedByConversation.Values select deal.title;
                 Logger(LOG_FILE_NAME, String.Format("Pipedrive deals affected: {0}", String.Join(", ", linqQuery)));
 
-                //todo: implement logic for billing tag and also implement that in the emailsender
+
                 if (conversation.dictOfTags.ContainsKey(Tag.BILLING_TAG_ID)) {
                     //billing - not considered an opportunity
                     Logger(LOG_FILE_NAME, "Billing tag - not processing this conversation any further");
@@ -540,6 +539,7 @@ namespace FrontPipedriveIntegrationProject
 
         private static void GenerateEmailBody(EmailSender emailSender)
         {
+            //todo improve runtime by merging with ProcessConversations
             // Better option would have been to use hashsets, but to keep things simple, using lists
             List<Conversation> billing = new List<Conversation>();
 

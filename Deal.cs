@@ -9,7 +9,8 @@ namespace FrontPipedriveIntegrationProject
     class Deal
     {
         //todo ReMoVe UNecEssAry FielDSSSSS
-        //todo change from decimal to integers
+        //todo add get set
+
         public Int32 id;
         public string title;
 
@@ -19,7 +20,7 @@ namespace FrontPipedriveIntegrationProject
         public decimal lastFailedCeDate;
         public decimal lastCeDoDate;
 
-        public decimal autoUpdateDateTimestamp;          // Last date(timestamp) when the fields were updated
+        public decimal autoUpdateDateTimestamp;   // Last date(timestamp) when the fields were updated
 
         public decimal totalPI30Days = 0;
         public decimal totalOpportunities30Days = 0;
@@ -114,40 +115,31 @@ namespace FrontPipedriveIntegrationProject
 
         public Deal(dynamic data)
         {
-            //todo remove these fields and use the dictionary instead
-            string AUTO_UPDATE_DATE_FIELD_ID = "a54bb91d20b88a895343586b7628d487dfdabfb6";
-            string CONTACT_HISTORY_FIELD_ID = "d7d9f36af37efdccc9219d2fc45446036baa9092";
-            string PI_HISTORY_FIELD_ID = "62721168b30501206ba71f90ccc3365be658d224";
-            string CE_HISTORY_FIELD_ID = "d1ef6a939ad18362781c8bb6a87c43ef22dc93f9";
-            string CE_DO_HISTORY_FIELD_ID = "3105ff80bb3fc252d5141d2213279cc331d27632";
-
-
-
             id = (Int32)data["id"];
             title = (string)data["title"];
-            if (data[AUTO_UPDATE_DATE_FIELD_ID] != null && !data[AUTO_UPDATE_DATE_FIELD_ID].Equals(""))
+            if (data[pdFieldKeys["AUTO_UPDATE_FIELD"]] != null && !data[pdFieldKeys["AUTO_UPDATE_FIELD"]].Equals(""))
             { //Update only if the there was an auto-update ever. Else keep it to default 0 which indicates the last update was at epoch time (Jan 1, 1970) 
-                autoUpdateDateTimestamp = data[AUTO_UPDATE_DATE_FIELD_ID];
+                autoUpdateDateTimestamp = data[pdFieldKeys["AUTO_UPDATE_FIELD"]];
             }
 
-            if (data[CONTACT_HISTORY_FIELD_ID] != null && !data[CONTACT_HISTORY_FIELD_ID].Equals(""))
+            if (data[pdFieldKeys["CONTACT_HISTORY_FIELD"]] != null && !data[pdFieldKeys["CONTACT_HISTORY_FIELD"]].Equals(""))
             { //Update only if the contact history field has some value already
-                contactHistoryStringArray = data[CONTACT_HISTORY_FIELD_ID].Split();
+                contactHistoryStringArray = data[pdFieldKeys["CONTACT_HISTORY_FIELD"]].Split();
             }
 
-            if (data[PI_HISTORY_FIELD_ID] != null && !data[PI_HISTORY_FIELD_ID].Equals(""))
+            if (data[pdFieldKeys["PI_HISTORY_FIELD"]] != null && !data[pdFieldKeys["PI_HISTORY_FIELD"]].Equals(""))
             { //Update only if the contact history field has some value already
-                piHistoryStringArray = data[PI_HISTORY_FIELD_ID].Split();
+                piHistoryStringArray = data[pdFieldKeys["PI_HISTORY_FIELD"]].Split();
             }
 
-            if (data[CE_HISTORY_FIELD_ID] != null && !data[CE_HISTORY_FIELD_ID].Equals(""))
+            if (data[pdFieldKeys["CE_HISTORY_FIELD"]] != null && !data[pdFieldKeys["CE_HISTORY_FIELD"]].Equals(""))
             { //Update only if the contact history field has some value already
-                ceHistoryStringArray = data[CE_HISTORY_FIELD_ID].Split();
+                ceHistoryStringArray = data[pdFieldKeys["CE_HISTORY_FIELD"]].Split();
             }
 
-            if (data[CE_DO_HISTORY_FIELD_ID] != null && !data[CE_DO_HISTORY_FIELD_ID].Equals(""))
+            if (data[pdFieldKeys["CE_DO_HISTORY_FIELD"]] != null && !data[pdFieldKeys["CE_DO_HISTORY_FIELD"]].Equals(""))
             { //Update only if the contact history field has some value already
-                ceDoHistoryStringArray = data[CE_DO_HISTORY_FIELD_ID].Split();
+                ceDoHistoryStringArray = data[pdFieldKeys["CE_DO_HISTORY_FIELD"]].Split();
             }
         }
 
@@ -155,32 +147,33 @@ namespace FrontPipedriveIntegrationProject
         public Dictionary<string, string> GetPostableData()
         {
 
-            Dictionary<string, string> result = new Dictionary<string, string>();
+            Dictionary<string, string> result = new Dictionary<string, string>
+            {
+                { pdFieldKeys["AUTO_UPDATE_FIELD"], autoUpdateDateTimestamp.ToString() },
 
-            result.Add(pdFieldKeys["AUTO_UPDATE_FIELD"], autoUpdateDateTimestamp.ToString());
+                { pdFieldKeys["PI_HISTORY_FIELD"], String.Join(" ", piHistoryStringArray) },
+                { pdFieldKeys["CONTACT_HISTORY_FIELD"], String.Join(" ", contactHistoryStringArray) },
+                { pdFieldKeys["CE_HISTORY_FIELD"], String.Join(" ", ceHistoryStringArray) },
+                { pdFieldKeys["CE_DO_HISTORY_FIELD"], String.Join(" ", ceDoHistoryStringArray) },
 
-            result.Add(pdFieldKeys["PI_HISTORY_FIELD"], String.Join(" ", piHistoryStringArray));
-            result.Add(pdFieldKeys["CONTACT_HISTORY_FIELD"], String.Join(" ", contactHistoryStringArray));
-            result.Add(pdFieldKeys["CE_HISTORY_FIELD"], String.Join(" ", ceHistoryStringArray));
-            result.Add(pdFieldKeys["CE_DO_HISTORY_FIELD"], String.Join(" ", ceDoHistoryStringArray));
+                { pdFieldKeys["LAST_PI_DATE_FIELD"], Program.TimestampToLocalTime(lastPiDate).ToString() },
+                { pdFieldKeys["LAST_OPEN_CONTACT_DATE_FIELD"], Program.TimestampToLocalTime(lastOpenContactDate).ToString() },
+                { pdFieldKeys["LAST_OPEN_CE_DATE_FIELD"], Program.TimestampToLocalTime(lastOpenCeDate).ToString() },
+                { pdFieldKeys["LAST_FAILED_CE_DATE_FIELD"], Program.TimestampToLocalTime(lastFailedCeDate).ToString() },
+                { pdFieldKeys["LAST_CE_DO_DATE_FIELD"], Program.TimestampToLocalTime(lastCeDoDate).ToString() },
 
-            result.Add(pdFieldKeys["LAST_PI_DATE_FIELD"], Program.TimestampToLocalTime(lastPiDate).ToString());
-            result.Add(pdFieldKeys["LAST_OPEN_CONTACT_DATE_FIELD"], Program.TimestampToLocalTime(lastOpenContactDate).ToString());
-            result.Add(pdFieldKeys["LAST_OPEN_CE_DATE_FIELD"], Program.TimestampToLocalTime(lastOpenCeDate).ToString());
-            result.Add(pdFieldKeys["LAST_FAILED_CE_DATE_FIELD"], Program.TimestampToLocalTime(lastFailedCeDate).ToString());
-            result.Add(pdFieldKeys["LAST_CE_DO_DATE_FIELD"], Program.TimestampToLocalTime(lastCeDoDate).ToString());
+                { pdFieldKeys["TOTAL_OPPORTUNITIES_30_DAYS_FIELD"], totalOpportunities30Days.ToString() },
+                { pdFieldKeys["TOTAL_PI_30_DAYS_FIELD"], totalPI30Days.ToString() },
+                { pdFieldKeys["TOTAL_FAILED_OPPORTUNITIES_30_DAYS_FIELD"], totalFailedOpportunities30Days.ToString() },
+                { pdFieldKeys["TOTAL_OPPORTUNITIES_1_YEAR_FIELD"], totalOpportunitiesYearly.ToString() },
+                { pdFieldKeys["TOTAL_PI_1_YEAR_FIELD"], totalPiYearly.ToString() },
 
-            result.Add(pdFieldKeys["TOTAL_OPPORTUNITIES_30_DAYS_FIELD"], totalOpportunities30Days.ToString());
-            result.Add(pdFieldKeys["TOTAL_PI_30_DAYS_FIELD"], totalPI30Days.ToString());
-            result.Add(pdFieldKeys["TOTAL_FAILED_OPPORTUNITIES_30_DAYS_FIELD"], totalFailedOpportunities30Days.ToString());
-            result.Add(pdFieldKeys["TOTAL_OPPORTUNITIES_1_YEAR_FIELD"], totalOpportunitiesYearly.ToString());
-            result.Add(pdFieldKeys["TOTAL_PI_1_YEAR_FIELD"], totalPiYearly.ToString());
-
-            result.Add(pdFieldKeys["TOTAL_CE_30_DAYS_FIELD"], totalCE30Days.ToString());
-            result.Add(pdFieldKeys["TOTAL_CE_DO_30_DAYS_FIELD"], successfulResolvedCe30Days.ToString());
-            result.Add(pdFieldKeys["TOTAL_FAILED_CE_30_DAYS_FIELD"], failedResolvedCe30Days.ToString());
-            result.Add(pdFieldKeys["TOTAL_CE_1_YEAR_FIELD"], totalCeYearly.ToString());
-            result.Add(pdFieldKeys["TOTAL_CE_DO_1_YEAR_FIELD"], totalCeDoYearly.ToString());
+                { pdFieldKeys["TOTAL_CE_30_DAYS_FIELD"], totalCE30Days.ToString() },
+                { pdFieldKeys["TOTAL_CE_DO_30_DAYS_FIELD"], successfulResolvedCe30Days.ToString() },
+                { pdFieldKeys["TOTAL_FAILED_CE_30_DAYS_FIELD"], failedResolvedCe30Days.ToString() },
+                { pdFieldKeys["TOTAL_CE_1_YEAR_FIELD"], totalCeYearly.ToString() },
+                { pdFieldKeys["TOTAL_CE_DO_1_YEAR_FIELD"], totalCeDoYearly.ToString() }
+            };
 
             return result;
         }

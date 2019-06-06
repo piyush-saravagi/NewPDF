@@ -94,21 +94,13 @@ namespace FrontPipedriveIntegrationProject
 
         public static dynamic GetResponseFromFrontApi(string relativeApiUrl)
         {
-
-            //todo INTRODUCING DELAY to avoid rate limiting. Will fix by serialization(better, faster option) OR increasing rate limit
-            //Thread.Sleep(3);
-
             var myUri = new Uri(String.Format("https://api2.frontapp.com{0}", relativeApiUrl));
             var myWebRequest = WebRequest.Create(myUri);
             var myHttpWebRequest = (HttpWebRequest)myWebRequest;
             myHttpWebRequest.PreAuthenticate = true;
             myHttpWebRequest.Headers.Add("Authorization", "Bearer " + FRONT_API_KEY);
             myHttpWebRequest.Accept = "application/json";
-
-
-            //todo =============================================
-            // NEED TO FIX THIS
-            //todo =============================================
+            
             try
             {
                 var myWebResponse = myWebRequest.GetResponse();
