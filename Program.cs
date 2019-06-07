@@ -27,6 +27,7 @@ namespace FrontPipedriveIntegrationProject
         {
             ApiAccessHelper.PD_API_KEY = "0b9f8a7f360f41c3264ab14ed5d2a760ecaf39f3";
             ApiAccessHelper.FRONT_API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzY29wZXMiOlsic2hhcmVkOioiXSwiaWF0IjoxNTU2MzEzNjI3LCJpc3MiOiJmcm9udCIsInN1YiI6ImxlYW5zZXJ2ZXIiLCJqdGkiOiI5MDZkYTc3NjA2NWVkOTA5In0.b28IHdaeo0YXwq4dy-xEbzG54RkHnXcOwrbMpbJ5LyY";
+            //PreparePDForFreshUpdate();
 
             ScanFrontEmails();
             ProcessConversations(currTimestamp);
@@ -52,6 +53,20 @@ namespace FrontPipedriveIntegrationProject
             sender.SendMessage();
         }
 
+
+        private static void PreparePDForFreshUpdate() {
+            //Deletes history and autoupdate fields for deals
+            dynamic[] allDeals = ApiAccessHelper.GetResponseFromPipedriveApi("/deals?limit=500&status=open", true);
+            ;
+            var dealIds = allDeals.Select(s => s["id"]);
+            ;
+            foreach(var id in dealIds)  {
+                Dictionary<string, string> data = new Dictionary<string, string>();
+                data.Add(Deal.pdFieldKeys["AUTO_UPDATE_FIELD"], "0");
+                ApiAccessHelper.PostPipedriveJson("/deals/"+id, data, "PUT");
+                Logger("PIYUSH", "Updated autoupdatedate for " + @"https://leanserver.pipedrive.com/deal/" + id);
+            }
+        }
 
         private static void ScanFrontEmails()
         {
@@ -177,6 +192,7 @@ namespace FrontPipedriveIntegrationProject
                         int monthToUpdate = TimestampToLocalTime(conversation.createdAt).Month - 1;
                         Int32 temp = Int32.Parse(d.contactHistoryStringArray[monthToUpdate]) + 1;
                         //Update it back to the deal
+                        Logger(LOG_FILE_NAME, "Updated contact history - new conversation created on " + TimestampToLocalTime(conversation.createdAt).Month + "and last update was on "+ TimestampToLocalTime(d.autoUpdateDateTimestamp));
                         d.contactHistoryStringArray[monthToUpdate] = temp.ToString();
 
                     }
@@ -552,7 +568,6 @@ namespace FrontPipedriveIntegrationProject
             emailSender.AppendLineToEmailBody("");
         }
 
-
         private static void GenerateEmailBody(EmailSender emailSender)
         {
             //todo improve runtime by merging with ProcessConversations
@@ -885,7 +900,6 @@ namespace FrontPipedriveIntegrationProject
             emailSender.AppendLineToEmailBody("");
 
         }
-
 
         public static DateTime TimestampToLocalTime(decimal timestamp)
         {

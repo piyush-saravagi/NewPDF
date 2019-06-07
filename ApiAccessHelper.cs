@@ -77,6 +77,7 @@ namespace FrontPipedriveIntegrationProject
                         var content = sr.ReadToEnd();
 
                         JavaScriptSerializer serializer = new JavaScriptSerializer();
+                        if (content.Length > serializer.MaxJsonLength) serializer.MaxJsonLength = content.Length;
                         dynamic obj = serializer.DeserializeObject(content);
 
                         if (obj["success"])
