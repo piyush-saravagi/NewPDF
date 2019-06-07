@@ -71,6 +71,8 @@ namespace FrontPipedriveIntegrationProject
             { "TOTAL_OPPORTUNITIES_1_YEAR_FIELD", "9f5d4acfe26d08732d9735881fa13eb6f6850eff"},
             { "TOTAL_PI_1_YEAR_FIELD", "b20b15c918ebfcc2a80a280731f2806295de2efb"},
             { "TOTAL_FAILED_OPPORTUNITIES_1_YEAR_FIELD", "c927211a25ba2b669eeab2b6f67a0adfe2d57645"},
+            { "CURRENTLY_OPEN_OPPORTUNITIES_FIELD", "567d81397bb8ac264bb0a1efe132075c32570fde"},
+            { "CURRENTLY STALE OPPORTUNITIES", "8b0f5960b1933dff23142cbf9a06816ced5a26b4"},
 
             { "TOTAL_CE_30_DAYS_FIELD", "1719116818456b1350f9b35589963160808c212f"},
             { "TOTAL_CE_DO_30_DAYS_FIELD", "e0d3dac72ab3c8759191b596125840437de53492"},
@@ -99,6 +101,8 @@ namespace FrontPipedriveIntegrationProject
             {"9f5d4acfe26d08732d9735881fa13eb6f6850eff", "TOTAL_OPPORTUNITIES_1_YEAR_FIELD"},
             {"b20b15c918ebfcc2a80a280731f2806295de2efb", "TOTAL_PI_1_YEAR_FIELD"},
             {"c927211a25ba2b669eeab2b6f67a0adfe2d57645", "TOTAL_FAILED_OPPORTUNITIES_1_YEAR_FIELD"},
+            { "567d81397bb8ac264bb0a1efe132075c32570fde", "CURRENTLY_OPEN_OPPORTUNITIES_FIELD"},
+            { "8b0f5960b1933dff23142cbf9a06816ced5a26b4", "CURRENTLY STALE OPPORTUNITIES"},
 
             {"1719116818456b1350f9b35589963160808c212f", "TOTAL_CE_30_DAYS_FIELD"},
             {"e0d3dac72ab3c8759191b596125840437de53492", "TOTAL_CE_DO_30_DAYS_FIELD"},
@@ -172,7 +176,10 @@ namespace FrontPipedriveIntegrationProject
                 { pdFieldKeys["TOTAL_CE_DO_30_DAYS_FIELD"], successfulResolvedCe30Days.ToString() },
                 { pdFieldKeys["TOTAL_FAILED_CE_30_DAYS_FIELD"], failedResolvedCe30Days.ToString() },
                 { pdFieldKeys["TOTAL_CE_1_YEAR_FIELD"], totalCeYearly.ToString() },
-                { pdFieldKeys["TOTAL_CE_DO_1_YEAR_FIELD"], totalCeDoYearly.ToString() }
+                { pdFieldKeys["TOTAL_CE_DO_1_YEAR_FIELD"], totalCeDoYearly.ToString() },
+
+                { pdFieldKeys["CURRENTLY_OPEN_OPPORTUNITIES_FIELD"], (openUnresolvedCe30Days + openUnresolvedOpportunities30Days).ToString()},
+                { pdFieldKeys["CURRENTLY STALE OPPORTUNITIES"],  (staleUnresolvedCe30Days + staleUnresolvedOpportunity30Days).ToString()},
             };
 
             return result;

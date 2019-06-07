@@ -43,7 +43,11 @@ namespace FrontPipedriveIntegrationProject
                 GenerateEmailBody(emailSender);
                 emailSender.SendMessage();
             }
-            Console.ReadKey();
+
+            EmailSender sender = new EmailSender();
+            sender.mail.Subject = "Integration ran successfully on " + currTimestamp.ToString() + " (" + currTimestamp + ")";
+            sender.mail.To.Add("piyush@leanserver.com");
+            sender.SendMessage();
         }
 
 
@@ -71,9 +75,9 @@ namespace FrontPipedriveIntegrationProject
                 int count = 0;
                 while (hasNextPage)
                 {
-                    var allConvInOneYear = response["_results"];
+                    var conv30days = response["_results"];
 
-                    foreach (var conversation in allConvInOneYear)
+                    foreach (var conversation in conv30days)
                     {
 
 
