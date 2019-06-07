@@ -63,6 +63,10 @@ namespace FrontPipedriveIntegrationProject
             foreach(var id in dealIds)  {
                 Dictionary<string, string> data = new Dictionary<string, string>();
                 data.Add(Deal.pdFieldKeys["AUTO_UPDATE_FIELD"], "0");
+                data.Add(Deal.pdFieldKeys["PI_HISTORY_FIELD"], "0 0 0 0 0 0 0 0 0 0 0 0");
+                data.Add(Deal.pdFieldKeys["CONTACT_HISTORY_FIELD"], "0 0 0 0 0 0 0 0 0 0 0 0");
+                data.Add(Deal.pdFieldKeys["CE_HISTORY_FIELD"], "0 0 0 0 0 0 0 0 0 0 0 0");
+                data.Add(Deal.pdFieldKeys["CE_DO_HISTORY_FIELD"], "0 0 0 0 0 0 0 0 0 0 0 0");
                 ApiAccessHelper.PostPipedriveJson("/deals/"+id, data, "PUT");
                 Logger("PIYUSH", "Updated autoupdatedate for " + @"https://leanserver.pipedrive.com/deal/" + id);
             }
