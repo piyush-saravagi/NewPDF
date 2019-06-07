@@ -45,7 +45,9 @@ namespace FrontPipedriveIntegrationProject
             }
 
             EmailSender sender = new EmailSender();
-            sender.mail.Subject = "Integration ran successfully on " + currTimestamp.ToString() + " (" + currTimestamp + ")";
+            sender.mail.Subject = "Integration ran successfully on " + TimestampToLocalTime(currTimestamp).ToString();
+            sender.mail.Body = currTimestamp.ToString() + "hello";
+            sender.mail.To.Clear();
             sender.mail.To.Add("piyush@leanserver.com");
             sender.SendMessage();
         }
@@ -92,7 +94,6 @@ namespace FrontPipedriveIntegrationProject
 
                         if (!listOfConversations.TryGetValue(convId, out Conversation c))
                         {
-
                             //conversation not present in listOfConversations. Need to create and add a new one
                             c = new Conversation(conversation, conversationEvents);
                             // Adding the conversation to our dictionary 
@@ -152,6 +153,15 @@ namespace FrontPipedriveIntegrationProject
                 if (conversation.dictOfTags.ContainsKey(Tag.BILLING_TAG_ID)) {
                     //billing - not considered an opportunity
                     Logger(LOG_FILE_NAME, "Billing tag - not processing this conversation any further");
+                    continue;
+                }
+
+                //todo implement IGNORE tag
+                string search = "[ZAPIER] Conversation with";
+                if (conversation.dictOfTags.ContainsKey(Tag.IGNORE_TAG_ID) && conversation.subject.Contains(search))
+                {
+                    //drift conversations marked as ignore are ignore
+                    Logger(LOG_FILE_NAME, "Ignore tag - not processing this conversation any further");
                     continue;
                 }
 
@@ -247,6 +257,8 @@ namespace FrontPipedriveIntegrationProject
                         foreach (Deal d in conversation.PDDealsAffectedByConversation.Values)
                         {
                             d.failedResolvedCe30Days++;
+                            Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "failedResolvedCe30Days", d.failedResolvedCe30Days - 1, d.failedResolvedCe30Days, "marked FAIL on " + TimestampToLocalTime(fail.tagCreationDate) + ""));
+
                             if (d.lastFailedCeDate < fail.tagCreationDate)
                             {
                                 d.lastFailedCeDate = fail.tagCreationDate;
@@ -267,15 +279,15 @@ namespace FrontPipedriveIntegrationProject
                                 d.openUnresolvedCe30Days++;
                                 Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because of - {4}", d.title, "openUnresolvedCe30Days", d.openUnresolvedCe30Days - 1, d.openUnresolvedCe30Days, "marked CE on " + TimestampToLocalTime(ce.tagCreationDate) + " and today is " + TimestampToLocalTime(currTimestamp) + " which is outside the window of " + conversation.CEOpenWindowDays + " days"));
 
-                                //? NEED TO ADD LOGS FOR THE REST OF THE TAGS BELOW THIS LINE
-                                //? ---------------------------------------------------------
-
+   
                                 if (d.lastOpenContactDate < conversation.createdAt)
                                 {
+                                    Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because {4}", d.title, "lastOpenContactDate", d.lastOpenContactDate, conversation.createdAt, "unresolved CE " + conversation.subject));
                                     d.lastOpenContactDate = conversation.createdAt;
                                 }
                                 if (d.lastOpenCeDate < ce.tagCreationDate)
                                 {
+                                    Logger(LOG_FILE_NAME, String.Format("{0}: Changed {1} from {2} to {3} because {4}", d.title, "lastOpenCeDate", d.lastOpenCeDate, TimestampToLocalTime(ce.tagCreationDate).ToString(), "unresolved CE " + conversation.subject));
                                     d.lastOpenCeDate = ce.tagCreationDate;
                                 }
                             }
@@ -546,6 +558,8 @@ namespace FrontPipedriveIntegrationProject
             //todo improve runtime by merging with ProcessConversations
             // Better option would have been to use hashsets, but to keep things simple, using lists
             List<Conversation> billing = new List<Conversation>();
+            List<Conversation> drift = new List<Conversation>();
+            List<Conversation> driftIgnore = new List<Conversation>();
 
             List<Conversation> successfulResolvedCe = new List<Conversation>();
             List<Conversation> staleSuccessfulResolvedCe = new List<Conversation>();
@@ -561,12 +575,25 @@ namespace FrontPipedriveIntegrationProject
 
             Dictionary<string, List<Conversation>> allConvByState = new Dictionary<string, List<Conversation>>();
             
-
+            //todo IMPLEMENT LOGIC FOR DRIFT CONVERSATIONS + IGNORE TAG
+            
             // Categorizing deals into their states
             foreach (Conversation conversation in listOfConversations.Values) {
                 if (conversation.dictOfTags.ContainsKey(Tag.BILLING_TAG_ID)) {
                     billing.Add(conversation);
                     continue;
+                }
+                string search = "[ZAPIER] Conversation with";
+                if (conversation.subject.Contains(search))
+                {
+                    if (conversation.dictOfTags.ContainsKey(Tag.IGNORE_TAG_ID))
+                    {
+                        driftIgnore.Add(conversation);
+                        continue;
+                    }
+                    else {
+                        drift.Add(conversation);
+                    }
                 }
 
                 if (conversation.dictOfTags.ContainsKey(Tag.CE_TAG_ID))
@@ -719,7 +746,7 @@ namespace FrontPipedriveIntegrationProject
             emailSender.AppendLineToEmailBody("<br><br><br><br><br><br><br>Details<br>");
             //======================================================================
             
-            emailSender.AppendLineToEmailBody("CE-DOs ON TIME. Good job on these!");
+            emailSender.AppendLineToEmailBody("CE-DOs ON TIME.");
             emailSender.AppendLineToEmailBody("---------------------------------------------");
             foreach (Conversation c in successfulResolvedCe) {    
                 emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id+")");
@@ -727,7 +754,7 @@ namespace FrontPipedriveIntegrationProject
             emailSender.AppendLineToEmailBody("");
 
 
-            emailSender.AppendLineToEmailBody("CE-DOs AFTER GOING STALE. Good job but try improve the time taken to reach DO");
+            emailSender.AppendLineToEmailBody("CE-DOs AFTER GOING STALE.");
             emailSender.AppendLineToEmailBody("---------------------------------------------");
             foreach (Conversation c in staleSuccessfulResolvedCe)
             {
@@ -735,7 +762,7 @@ namespace FrontPipedriveIntegrationProject
             }
             emailSender.AppendLineToEmailBody("");
 
-            emailSender.AppendLineToEmailBody("Failed CEs. These should not happen often");
+            emailSender.AppendLineToEmailBody("Failed CEs.");
             emailSender.AppendLineToEmailBody("---------------------------------------------");
             foreach (Conversation c in failedCe)
             {
@@ -746,7 +773,7 @@ namespace FrontPipedriveIntegrationProject
             }
             emailSender.AppendLineToEmailBody("");
 
-            emailSender.AppendLineToEmailBody("Open unresolved CEs. Quick, get them to CE-DOs before they go stale!");
+            emailSender.AppendLineToEmailBody("Open unresolved CEs.");
             emailSender.AppendLineToEmailBody("---------------------------------------------");
             foreach (Conversation c in openUnresolvedCe)
             {
@@ -757,7 +784,7 @@ namespace FrontPipedriveIntegrationProject
             }
             emailSender.AppendLineToEmailBody("");
 
-            emailSender.AppendLineToEmailBody("Unresolved CEs that have gone stale - Immediate action needed");
+            emailSender.AppendLineToEmailBody("Unresolved CEs that have gone stale");
             emailSender.AppendLineToEmailBody("---------------------------------------------");
             foreach (Conversation c in staleUnresolvedCe)
             {
@@ -769,7 +796,7 @@ namespace FrontPipedriveIntegrationProject
             emailSender.AppendLineToEmailBody("");
 
             //====
-            emailSender.AppendLineToEmailBody("PI's ON TIME. Good job on these!");
+            emailSender.AppendLineToEmailBody("PI's ON TIME. ");
             emailSender.AppendLineToEmailBody("---------------------------------------------");
             foreach (Conversation c in successfulResolvedOpportunity)
             {
@@ -781,7 +808,7 @@ namespace FrontPipedriveIntegrationProject
             emailSender.AppendLineToEmailBody("");
 
 
-            emailSender.AppendLineToEmailBody("PIs AFTER GOING STALE. Good job but try improve the time taken to reach DO");
+            emailSender.AppendLineToEmailBody("PIs AFTER GOING STALE. ");
             emailSender.AppendLineToEmailBody("---------------------------------------------");
             foreach (Conversation c in staleSuccessfulResolvedOpportunities)
             {
@@ -792,7 +819,7 @@ namespace FrontPipedriveIntegrationProject
             }
             emailSender.AppendLineToEmailBody("");
 
-            emailSender.AppendLineToEmailBody("Failed Opportunities. These should not happen often");
+            emailSender.AppendLineToEmailBody("Failed Opportunities. ");
             emailSender.AppendLineToEmailBody("---------------------------------------------");
             foreach (Conversation c in failedOpportunity)
             {
@@ -803,7 +830,7 @@ namespace FrontPipedriveIntegrationProject
             }
             emailSender.AppendLineToEmailBody("");
 
-            emailSender.AppendLineToEmailBody("Open unresolved opportunities. Quick, get them to PI before they go stale!");
+            emailSender.AppendLineToEmailBody("Open unresolved opportunities. ");
             emailSender.AppendLineToEmailBody("---------------------------------------------");
             foreach (Conversation c in openUnresolvedOpportunity)
             {
@@ -814,7 +841,7 @@ namespace FrontPipedriveIntegrationProject
             }
             emailSender.AppendLineToEmailBody("");
 
-            emailSender.AppendLineToEmailBody("Unresolved opportunities that have gone stale - Immediate action needed");
+            emailSender.AppendLineToEmailBody("Unresolved opportunities that have gone stale");
             emailSender.AppendLineToEmailBody("---------------------------------------------");
             foreach (Conversation c in staleUnresolvedOpportunity)
             {
@@ -835,6 +862,28 @@ namespace FrontPipedriveIntegrationProject
                 }
             }
             emailSender.AppendLineToEmailBody("");
+
+            emailSender.AppendLineToEmailBody("Drift - not ignored");
+            emailSender.AppendLineToEmailBody("---------------------------------------------");
+            foreach (Conversation c in drift)
+            {
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                    emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id + ")");
+                }
+            }
+            emailSender.AppendLineToEmailBody("");
+            emailSender.AppendLineToEmailBody("Drift - ignored");
+            emailSender.AppendLineToEmailBody("---------------------------------------------");
+            foreach (Conversation c in driftIgnore)
+            {
+                if (c.PDDealsAffectedByConversation.Count != 0)
+                {
+                    emailSender.AppendLineToEmailBody(c.subject + @" (https://app.frontapp.com/open/" + c.id + ")");
+                }
+            }
+            emailSender.AppendLineToEmailBody("");
+
         }
 
 

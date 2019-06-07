@@ -19,7 +19,8 @@ namespace FrontPipedriveIntegrationProject
             smtpServer = new SmtpClient("smtp.gmail.com");
 
             mail.From = new MailAddress("emailsender1995@gmail.com");
-            mail.To.Add("piyush@leanserver.com,keegan@leanserver.com,mike@leanserver.com,jill@leanserver.com,support@leansentry.com");
+            //mail.To.Add("piyush@leanserver.com,keegan@leanserver.com,mike@leanserver.com,jill@leanserver.com,support@leansentry.com");
+            mail.To.Add("piyush@leanserver.com");
 
             mail.Subject = "Conversation summaries";
             mail.IsBodyHtml = true;

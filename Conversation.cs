@@ -21,7 +21,7 @@ namespace FrontPipedriveIntegrationProject
         public decimal createdAt;
         public decimal lastMessage;
         public int CEOpenWindowDays = 10;   // Number of days to resolve CE before the CE goes stale
-        public int OpportunityOpenWindowDays = 10;   // Number of days to resolve opportunity before the opportunity goes stale
+        public int OpportunityOpenWindowDays = 5;   // Number of days to resolve opportunity before the opportunity goes stale
         public string assignee;
 
 
@@ -45,9 +45,24 @@ namespace FrontPipedriveIntegrationProject
             {
                 this.listOfMessages.Add(msg);   // Convert to list
             }
-
-            this.setOfEmails = GetEmailsFromMessageList(listOfMessages);
-
+            //todo integrate zapier emails for drift conversations
+            string search = "[ZAPIER] Conversation with";
+            if (subject.Contains(search))
+            {
+                //new drift conversation
+                int start = search.Length;
+                string email = null;
+                if (start + 1 < subject.Length)
+                {
+                    email = subject.Substring(start + 1);
+                }
+                setOfEmails = new HashSet<string>();
+                if(email != null)
+                    setOfEmails.Add(email);
+            }
+            else {
+                this.setOfEmails = GetEmailsFromMessageList(listOfMessages);
+            }
             this.PDDealsAffectedByConversation = GetListOfDealsToBeUpdated(setOfEmails);
 
             foreach (var e in events)

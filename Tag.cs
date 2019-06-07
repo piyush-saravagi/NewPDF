@@ -14,6 +14,7 @@ namespace FrontPipedriveIntegrationProject
      * [fail]    :   tag_2zbsl
      * [contact] :   tag_2zbs5
      * [billing] :   tag_36oud
+     * [ignore]  :   
      */
     class Tag
     {
@@ -23,6 +24,7 @@ namespace FrontPipedriveIntegrationProject
         public static readonly string PI_TAG_ID = "tag_2zbt1";
         public static readonly string FAIL_TAG_ID = "tag_2zbsl";
         public static readonly string BILLING_TAG_ID = "tag_36oud";
+        public static readonly string IGNORE_TAG_ID = "tag_3eptx";
 
         public decimal tagCreationDate;
         public string tagId;
