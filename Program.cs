@@ -15,7 +15,7 @@ namespace FrontPipedriveIntegrationProject
 {
     class Program
     {
-        public const Int32 DAYS_TO_SCAN =  1;
+        public const Int32 DAYS_TO_SCAN =  30;
         static Dictionary<string, Conversation> listOfConversations = new Dictionary<string, Conversation>();
         
         static Int32 currTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
@@ -548,16 +548,7 @@ namespace FrontPipedriveIntegrationProject
                         
                     }
             }
-            foreach (Conversation c in allConvByState["staleUnresolvedOpportunity"])
-            {
-                if (c.assignee == assignee)
-                    if (c.PDDealsAffectedByConversation.Count != 0)
-                    {
-                        string link = @"https://app.frontapp.com/open/" + c.id;
-                        Int32 daysOpen = (Int32)(currTimestamp - c.createdAt) / 86400; //converting seconds to days
-                        emailSender.AppendLineToEmailBody(String.Format(counter++ + ". <a href={0}><font color=red>{1}</font></a> | Open  since {2} ({3} days) | {4}", link, c.subject, TimestampToLocalTime(c.createdAt).ToString("MM-dd-yyyy"), daysOpen, c.primaryEmail));
-                    }
-            }
+            emailSender.AppendLineToEmailBody(" ");
             foreach (Conversation c in allConvByState["openUnresolvedOpportunity"])
             {
                 if (c.assignee == assignee)
@@ -568,6 +559,17 @@ namespace FrontPipedriveIntegrationProject
                         emailSender.AppendLineToEmailBody(String.Format(counter++ + ". <a href={0}>{1}</a> | Open since {2} ({3} days) | {4}", link, c.subject, TimestampToLocalTime(c.createdAt).ToString("MM-dd-yyyy"), daysOpen, c.primaryEmail));
                     }
             }
+            foreach (Conversation c in allConvByState["staleUnresolvedOpportunity"])
+            {
+                if (c.assignee == assignee)
+                    if (c.PDDealsAffectedByConversation.Count != 0)
+                    {
+                        string link = @"https://app.frontapp.com/open/" + c.id;
+                        Int32 daysOpen = (Int32)(currTimestamp - c.createdAt) / 86400; //converting seconds to days
+                        emailSender.AppendLineToEmailBody(String.Format(counter++ + ". <a href={0}><font color=red>{1}</font></a> | Open  since {2} ({3} days) | {4}", link, c.subject, TimestampToLocalTime(c.createdAt).ToString("MM-dd-yyyy"), daysOpen, c.primaryEmail));
+                    }
+            }
+            
             emailSender.AppendLineToEmailBody("");
         }
 

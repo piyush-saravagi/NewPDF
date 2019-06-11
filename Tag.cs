@@ -30,10 +30,6 @@ namespace FrontPipedriveIntegrationProject
         public string tagId;
         public string readableTagName;
 
-        //!================================================
-        public int tagCurrentlyPresent = 0;
-        //!================================================
-
 
         public Tag(dynamic e)
         {

@@ -65,9 +65,9 @@ namespace FrontPipedriveIntegrationProject
             }
             this.PDDealsAffectedByConversation = GetListOfDealsToBeUpdated(setOfEmails);
 
-            // Simplification - does not work for multiple untagging events
-            //TODO implement untagging
 
+            //! We do not directly add tags the conversation data because we also need the time when the tag was added. 
+            //! This is received from the 'tag' events
             foreach (var e in events)
             {
                 if (e["type"] == "tag")
@@ -82,11 +82,29 @@ namespace FrontPipedriveIntegrationProject
                     }
                 }
 
-                if (e["type"] == "untag") {
-                    ; //Untag event - removing the tag from the dictionary
-                    if (dictOfTags.ContainsKey(e["target"]["data"]["id"])) {
-                        dictOfTags.Remove(e["target"]["data"]["id"]);
+                //if (e["type"] == "untag") {
+                //    ; //Untag event - removing the tag from the dictionary
+                //    if (dictOfTags.ContainsKey(e["target"]["data"]["id"])) {
+                //        dictOfTags.Remove(e["target"]["data"]["id"]);
+                //    }
+                //}
+            }
+
+            var allTagIds = dictOfTags.Select(a => a.Key).ToList();
+
+            foreach (string key in allTagIds) {
+                bool keep = false;
+                foreach (var actualTag in fullConversationData["tags"]) {
+                    if (key == actualTag["id"]) {
+                        //Keep the tag
+                        keep = true;
+                        break;
                     }
+                }
+                if (!keep) {
+                    //Remove the tag added from the tag event
+                    ;
+                    dictOfTags.Remove(key);
                 }
             }
         }
