@@ -15,7 +15,7 @@ namespace FrontPipedriveIntegrationProject
 {
     class Program
     {
-        public const Int32 DAYS_TO_SCAN =  30;
+        public const Int32 DAYS_TO_SCAN =  1;
         static Dictionary<string, Conversation> listOfConversations = new Dictionary<string, Conversation>();
         
         static Int32 currTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
@@ -548,7 +548,7 @@ namespace FrontPipedriveIntegrationProject
                         
                     }
             }
-            emailSender.AppendLineToEmailBody(" ");
+
             foreach (Conversation c in allConvByState["openUnresolvedOpportunity"])
             {
                 if (c.assignee == assignee)

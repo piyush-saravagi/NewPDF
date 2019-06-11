@@ -72,7 +72,9 @@ namespace FrontPipedriveIntegrationProject
             { "TOTAL_PI_1_YEAR_FIELD", "b20b15c918ebfcc2a80a280731f2806295de2efb"},
             { "TOTAL_FAILED_OPPORTUNITIES_1_YEAR_FIELD", "c927211a25ba2b669eeab2b6f67a0adfe2d57645"},
             { "CURRENTLY_OPEN_OPPORTUNITIES_FIELD", "567d81397bb8ac264bb0a1efe132075c32570fde"},
-            { "CURRENTLY STALE OPPORTUNITIES", "8b0f5960b1933dff23142cbf9a06816ced5a26b4"},
+            { "CURRENTLY_STALE_OPPORTUNITIES_FIELD", "8b0f5960b1933dff23142cbf9a06816ced5a26b4"},
+            { "CURRENTLY_OPEN_CE_FIELD", "47051ac67229b711fb5a4c7f8b1f6afe1d6cad84"},
+            { "CURRENTLY_STALE_CE_FIELD", "210342625dd5943957064d893d17cb5a15807f6d"},
 
             { "TOTAL_CE_30_DAYS_FIELD", "1719116818456b1350f9b35589963160808c212f"},
             { "TOTAL_CE_DO_30_DAYS_FIELD", "e0d3dac72ab3c8759191b596125840437de53492"},
@@ -80,7 +82,7 @@ namespace FrontPipedriveIntegrationProject
             { "TOTAL_CE_1_YEAR_FIELD", "26f25d835fb11320f19d4cd7521aeb5a16ebe9c1"},
             { "TOTAL_CE_DO_1_YEAR_FIELD", "0d691c90d13f3a3f374209b1162629a51c3d8369"},
             //{ "TOTAL_FAILED_CE_1_YEAR_FIELD", "c8ab13c8d2cf295c2508a5288600a3c8606d6519"},
-
+            {"AUTO_UPDATE_STRING_FIELD" ,"4395f71ac9535c8f012b138930582041b050eae4"},
         };
 
         public static Dictionary<string, string> pdFieldNames = new Dictionary<string, string>() {
@@ -102,13 +104,17 @@ namespace FrontPipedriveIntegrationProject
             {"b20b15c918ebfcc2a80a280731f2806295de2efb", "TOTAL_PI_1_YEAR_FIELD"},
             {"c927211a25ba2b669eeab2b6f67a0adfe2d57645", "TOTAL_FAILED_OPPORTUNITIES_1_YEAR_FIELD"},
             { "567d81397bb8ac264bb0a1efe132075c32570fde", "CURRENTLY_OPEN_OPPORTUNITIES_FIELD"},
-            { "8b0f5960b1933dff23142cbf9a06816ced5a26b4", "CURRENTLY STALE OPPORTUNITIES"},
+            { "8b0f5960b1933dff23142cbf9a06816ced5a26b4", "CURRENTLY_STALE_OPPORTUNITIES_FIELD"},
+            { "47051ac67229b711fb5a4c7f8b1f6afe1d6cad84","CURRENTLY_OPEN_CE_FIELD" },
+            { "210342625dd5943957064d893d17cb5a15807f6d","CURRENTLY_STALE_CE_FIELD" },
 
             {"1719116818456b1350f9b35589963160808c212f", "TOTAL_CE_30_DAYS_FIELD"},
             {"e0d3dac72ab3c8759191b596125840437de53492", "TOTAL_CE_DO_30_DAYS_FIELD"},
             {"0f655f3888028ba246f7a4db8b06833474c591b0", "TOTAL_FAILED_CE_30_DAYS_FIELD"},
             {"26f25d835fb11320f19d4cd7521aeb5a16ebe9c1", "TOTAL_CE_1_YEAR_FIELD"},
             {"0d691c90d13f3a3f374209b1162629a51c3d8369", "TOTAL_CE_DO_1_YEAR_FIELD"},
+
+            { "4395f71ac9535c8f012b138930582041b050eae4", "AUTO_UPDATE_STRING_FIELD"}
             //{"c8ab13c8d2cf295c2508a5288600a3c8606d6519", "TOTAL_FAILED_CE_1_YEAR_FIELD"},
 
         };
@@ -154,6 +160,8 @@ namespace FrontPipedriveIntegrationProject
             Dictionary<string, string> result = new Dictionary<string, string>
             {
                 { pdFieldKeys["AUTO_UPDATE_FIELD"], autoUpdateDateTimestamp.ToString() },
+                { pdFieldKeys["AUTO_UPDATE_STRING_FIELD"], Program.TimestampToLocalTime(autoUpdateDateTimestamp).ToString()},
+
 
                 { pdFieldKeys["PI_HISTORY_FIELD"], String.Join(" ", piHistoryStringArray) },
                 { pdFieldKeys["CONTACT_HISTORY_FIELD"], String.Join(" ", contactHistoryStringArray) },
@@ -178,10 +186,19 @@ namespace FrontPipedriveIntegrationProject
                 { pdFieldKeys["TOTAL_CE_1_YEAR_FIELD"], totalCeYearly.ToString() },
                 { pdFieldKeys["TOTAL_CE_DO_1_YEAR_FIELD"], totalCeDoYearly.ToString() },
 
-                { pdFieldKeys["CURRENTLY_OPEN_OPPORTUNITIES_FIELD"], (openUnresolvedCe30Days + openUnresolvedOpportunities30Days).ToString()},
-                { pdFieldKeys["CURRENTLY STALE OPPORTUNITIES"],  (staleUnresolvedCe30Days + staleUnresolvedOpportunity30Days).ToString()},
+                { pdFieldKeys["CURRENTLY_OPEN_OPPORTUNITIES_FIELD"], (openUnresolvedOpportunities30Days).ToString()},
+                { pdFieldKeys["CURRENTLY_STALE_OPPORTUNITIES_FIELD"],  (staleUnresolvedOpportunity30Days).ToString()},
+                { pdFieldKeys["CURRENTLY_OPEN_CE_FIELD"], (openUnresolvedCe30Days).ToString()},
+                { pdFieldKeys["CURRENTLY_STALE_CE_FIELD"],  (staleUnresolvedCe30Days).ToString()},
             };
 
+            // When the timestamp is 0, the value returned is 12/31/1969. We do not want that value in the PD field
+            // So we are sending in "" strings instead
+            if (lastPiDate == 0) result[pdFieldKeys["LAST_PI_DATE_FIELD"]] = "";
+            if (lastOpenContactDate == 0) result[pdFieldKeys["LAST_OPEN_CONTACT_DATE_FIELD"]] = "";
+            if (lastOpenCeDate == 0) result[pdFieldKeys["LAST_OPEN_CE_DATE_FIELD"]] = "";
+            if (lastFailedCeDate == 0) result[pdFieldKeys["LAST_FAILED_CE_DATE_FIELD"]] = "";
+            if (lastCeDoDate == 0) result[pdFieldKeys["LAST_CE_DO_DATE_FIELD"]] = "";
             return result;
         }
 
