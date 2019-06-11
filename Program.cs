@@ -15,7 +15,7 @@ namespace FrontPipedriveIntegrationProject
 {
     class Program
     {
-        public const Int32 DAYS_TO_SCAN =  30;
+        public const Int32 DAYS_TO_SCAN =  1;
         static Dictionary<string, Conversation> listOfConversations = new Dictionary<string, Conversation>();
         
         static Int32 currTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
@@ -47,9 +47,9 @@ namespace FrontPipedriveIntegrationProject
 
             EmailSender sender = new EmailSender();
             sender.mail.Subject = "Integration ran successfully on " + TimestampToLocalTime(currTimestamp).ToString();
-            sender.mail.Body = currTimestamp.ToString() + "hello";
             sender.mail.To.Clear();
             sender.mail.To.Add("piyush@leanserver.com");
+            sender.mail.Body = currTimestamp.ToString() + "";
             sender.SendMessage();
         }
 
@@ -57,9 +57,8 @@ namespace FrontPipedriveIntegrationProject
         private static void PreparePDForFreshUpdate() {
             //Deletes history and autoupdate fields for deals
             dynamic[] allDeals = ApiAccessHelper.GetResponseFromPipedriveApi("/deals?limit=500&status=open", true);
-            ;
             var dealIds = allDeals.Select(s => s["id"]);
-            ;
+
             foreach(var id in dealIds)  {
                 Dictionary<string, string> data = new Dictionary<string, string>();
                 data.Add(Deal.pdFieldKeys["AUTO_UPDATE_FIELD"], "0");

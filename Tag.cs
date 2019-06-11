@@ -30,6 +30,10 @@ namespace FrontPipedriveIntegrationProject
         public string tagId;
         public string readableTagName;
 
+        //!================================================
+        public int tagCurrentlyPresent = 0;
+        //!================================================
+
 
         public Tag(dynamic e)
         {
@@ -37,5 +41,7 @@ namespace FrontPipedriveIntegrationProject
             tagId = (string)(e["target"]["data"]["id"]);
             readableTagName = (string)(e["target"]["data"]["name"]);
         }
+
+        //TODO IMPLEMENT UNTAG
     }
 }

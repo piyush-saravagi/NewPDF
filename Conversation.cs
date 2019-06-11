@@ -65,6 +65,9 @@ namespace FrontPipedriveIntegrationProject
             }
             this.PDDealsAffectedByConversation = GetListOfDealsToBeUpdated(setOfEmails);
 
+            // Simplification - does not work for multiple untagging events
+            //TODO implement untagging
+
             foreach (var e in events)
             {
                 if (e["type"] == "tag")
@@ -76,6 +79,13 @@ namespace FrontPipedriveIntegrationProject
                         //Add the tag to the list
                         dictOfTags.Add(t.tagId, t);
                                          
+                    }
+                }
+
+                if (e["type"] == "untag") {
+                    ; //Untag event - removing the tag from the dictionary
+                    if (dictOfTags.ContainsKey(e["target"]["data"]["id"])) {
+                        dictOfTags.Remove(e["target"]["data"]["id"]);
                     }
                 }
             }
